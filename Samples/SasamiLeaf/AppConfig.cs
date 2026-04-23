@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text.Json;
 
@@ -7,7 +7,13 @@ using FlyleafLib;
 namespace FlyleafPlayer;
 public class AppConfig
 {
-    static readonly string PATH = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Flyleaf.AppConfig.json");
+    static readonly string PATH = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SasamiLeaf", "Flyleaf.AppConfig.json");
+
+    static AppConfig()
+    {
+        string dir = Path.GetDirectoryName(PATH);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+    }
 
     public GeneralConfig    General     { get; set; } = new();
     public SlideShowConfig  SlideShow   { get; set; } = new();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows;
 
@@ -11,7 +11,7 @@ public partial class App : Application
     public static AppConfig AppConfig       { get; set; } = AppConfig.Load();
     public static string    CmdUrl          { get; set; } = null;
     public static bool      StartMinimized  { get; set; } = false;
-    public static string    EnginePath      { get; set; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Flyleaf.Engine.json");
+    public static string    EnginePath      { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SasamiLeaf", "Flyleaf.Engine.json");
 
     static System.Windows.Forms.NotifyIcon TrayIcon;
 
@@ -140,7 +140,7 @@ public partial class App : Application
         FFmpegLoadProfile   = Flyleaf.FFmpeg.LoadProfile.All,
 
         #if RELEASE
-        LogOutput           = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Flyleaf.FirstRun.log"),
+        LogOutput           = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SasamiLeaf", "Flyleaf.FirstRun.log"),
         LogLevel            = LogLevel.Debug,
         #else
         LogOutput           = ":debug",
