@@ -1,0 +1,88 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:collections="clr-namespace:System.Collections;assembly=mscorlib"
+                    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+                    xmlns:devices="clr-namespace:FlyleafLib.MediaFramework.MediaDevice;assembly=FlyleafLib"
+                    xmlns:flyleafLib="clr-namespace:FlyleafLib;assembly=FlyleafLib">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/MaterialDesign.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/Converters.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Standard Flyleaf Menu Styles -->
+    <Style x:Key="FlyleafContextMenu" TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource MaterialDesignContextMenu}"/>
+    <Style x:Key="FlyleafMenuItem"    TargetType="{x:Type MenuItem}"    BasedOn="{StaticResource MaterialDesignMenuItem}"/>
+
+    <HierarchicalDataTemplate x:Key="DeviceMenuHierarchyTemplate" DataType="{x:Type devices:DeviceBase}" ItemsSource="{Binding Streams}">
+        <TextBlock Text="{Binding FriendlyName}"/>
+    </HierarchicalDataTemplate>
+
+    <Style x:Key="StreamMenuItemStyle" TargetType="MenuItem" BasedOn="{StaticResource FlyleafMenuItem}">
+        <Setter Property="Command" Value="{Binding DataContext.Player.Commands.Open, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type ContextMenu}}}"/>
+        <Setter Property="CommandParameter" Value="{Binding}"/>
+        <Setter Property="IsCheckable" Value="True"/>
+        <Setter Property="IsChecked" Value="{Binding Enabled, Mode=OneWay}"/>
+    </Style>
+
+    <collections:ArrayList x:Key="MenuAudioStreams">
+        <MenuItem Header="Streams">
+            <MenuItem Header="Embedded" ItemsSource="{Binding Player.Audio.Streams}" ItemContainerStyle="{StaticResource StreamMenuItemStyle}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Language, StringFormat=' [#{0}] {0}'}"/>
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+            <MenuItem Header="External" ItemsSource="{Binding Player.Playlist.Selected.ExternalAudioStreams}" ItemContainerStyle="{StaticResource StreamMenuItemStyle}">
+                <MenuItem.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Language}"/>
+                    </DataTemplate>
+                </MenuItem.ItemTemplate>
+            </MenuItem>
+        </MenuItem>
+        <MenuItem Header="Devices" ItemsSource="{Binding AudioEngine.Devices}" ItemTemplate="{StaticResource DeviceMenuHierarchyTemplate}" ItemContainerStyle="{StaticResource FlyleafMenuItem}"/>
+    </collections:ArrayList>
+
+    <collections:ArrayList x:Key="MenuSubtitlesStreams">
+        <MenuItem Header="Embedded" ItemsSource="{Binding Player.Subtitles.Streams}" ItemContainerStyle="{StaticResource StreamMenuItemStyle}">
+            <MenuItem.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Language, StringFormat=' [#{0}] {0}'}"/>
+                </DataTemplate>
+            </MenuItem.ItemTemplate>
+        </MenuItem>
+        <MenuItem Header="External" ItemsSource="{Binding Player.Playlist.Selected.ExternalSubtitlesStreams}" ItemContainerStyle="{StaticResource StreamMenuItemStyle}">
+            <MenuItem.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Title}"/>
+                </DataTemplate>
+            </MenuItem.ItemTemplate>
+        </MenuItem>
+    </collections:ArrayList>
+
+    <collections:ArrayList x:Key="MenuVideoStreams">
+        <MenuItem Header="Embedded" ItemsSource="{Binding Player.Video.Streams}" ItemContainerStyle="{StaticResource StreamMenuItemStyle}">
+            <MenuItem.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Width, StringFormat=' {0}x{1}'}"/>
+                </DataTemplate>
+            </MenuItem.ItemTemplate>
+        </MenuItem>
+    </collections:ArrayList>
+
+    <ContextMenu x:Key="PopUpMenu" Style="{StaticResource FlyleafContextMenu}">
+        <MenuItem Header="Open File" Command="{Binding OpenFileDialog}" Icon="{materialDesign:PackIcon Kind=FileOutline}" Style="{StaticResource FlyleafMenuItem}"/>
+        <MenuItem Header="Paste Url" Command="{Binding Player.Commands.OpenFromClipboard}" Icon="{materialDesign:PackIcon Kind=ClipboardTextOutline}" IsEnabled="{Binding CanPaste}" Style="{StaticResource FlyleafMenuItem}"/>
+        <Separator />
+        <MenuItem Header="Audio" ItemsSource="{StaticResource MenuAudioStreams}" Icon="{materialDesign:PackIcon Kind=VolumeHigh}" Style="{StaticResource FlyleafMenuItem}"/>
+        <MenuItem Header="Subtitles" ItemsSource="{StaticResource MenuSubtitlesStreams}" Icon="{materialDesign:PackIcon Kind=CcOutline}" Style="{StaticResource FlyleafMenuItem}"/>
+        <MenuItem Header="Video" ItemsSource="{StaticResource MenuVideoStreams}" Icon="{materialDesign:PackIcon Kind=VideoOutline}" Style="{StaticResource FlyleafMenuItem}"/>
+        <Separator />
+        <MenuItem Header="Show Debug" IsCheckable="True" IsChecked="{Binding ShowDebug}" Icon="{materialDesign:PackIcon Kind=BugOutline}" Style="{StaticResource FlyleafMenuItem}"/>
+        <Separator />
+        <MenuItem Header="Exit" Command="{Binding ExitApplication}" Icon="{materialDesign:PackIcon Kind=ExitToApp}" Style="{StaticResource FlyleafMenuItem}"/>
+    </ContextMenu>
+
+</ResourceDictionary>
