@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -80,8 +80,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
             // Allow Flyleaf WPF Control to Load UIConfig and Save both Config & UIConfig (Save button will be available in settings)
             EnginePath    = App.EnginePath,
-            ConfigPath    = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Flyleaf.Config.json"),
-            UIConfigPath  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Flyleaf.UIConfig.json")
+            ConfigPath    = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SasamiLeaf", "Flyleaf.Config.json"),
+            UIConfigPath  = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "SasamiLeaf", "Flyleaf.UIConfig.json")
         };
 
         if (GeneralConfig.AllowTransparency)
@@ -128,6 +128,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     void BtnMinimize_Click(object sender, RoutedEventArgs e) => FlyleafME.IsMinimized = true;
     void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
+
+    void VideoGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 1)
+            Player?.TogglePlayPause();
+    }
 
     public static MainWindow GetWindowFromPlayer(Player player)
     {

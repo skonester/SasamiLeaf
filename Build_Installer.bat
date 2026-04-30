@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo ===================================================
 echo SasamiLeaf Installer Build Script
 echo ===================================================
@@ -8,11 +9,11 @@ if exist "publish_out" rmdir /s /q "publish_out"
 
 echo.
 echo Step 2: Publishing SasamiLeaf (Win-x64, Self-Contained)...
-dotnet publish Samples\SasamiLeaf\SasamiLeaf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish_out
+dotnet publish "SasamiLeaf/SasamiLeaf.csproj" -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish_out
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo ERROR: Publish failed! Please check the output above.
+    echo ERROR: Build failed! Please check the output above.
     pause
     exit /b %ERRORLEVEL%
 )

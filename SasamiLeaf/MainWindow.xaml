@@ -17,8 +17,9 @@
         TextElement.FontSize="12"
         FontFamily="Tahoma, MS Sans Serif, Arial"
         
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
         Title="SasamiLeaf" WindowStyle="None" ResizeMode="NoResize" AllowsTransparency="True" Background="Transparent"
-
         MinWidth="150" MinHeight="80"
         Height="450" Width="800" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded" Icon="/Flyleaf.ico">
 
@@ -30,7 +31,7 @@
         </ResourceDictionary>
     </Window.Resources>
 
-    <Border BorderThickness="0.6">
+    <Border BorderThickness="1">
         <Border.Resources>
             <ResourceDictionary>
                 <ResourceDictionary.MergedDictionaries>
@@ -73,9 +74,9 @@
                 </Style.Triggers>
             </Style>
         </Border.Style>
-        <Border BorderThickness="6 2 6 2" BorderBrush="#01000000">
+        <Border BorderThickness="1 2 1 2" BorderBrush="#01000000">
             <Grid>
-                <Grid>
+                <Grid MouseLeftButtonDown="VideoGrid_MouseLeftButtonDown">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
@@ -97,7 +98,7 @@
                     </fl:PlayerDebug>
 
                     <!--Title Bar-->
-                    <Grid Grid.Row="0" x:Name="HeaderGrid" Margin="-2 0 -2 0">
+                    <Grid Grid.Row="0" x:Name="HeaderGrid" Margin="0">
                         <Grid.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                 <GradientStop Color="#000080" Offset="0"/>
@@ -133,6 +134,9 @@
                                             <RemoveStoryboard BeginStoryboardName="fadeOutN2" />
                                             <BeginStoryboard x:Name="fadeInN" Storyboard="{StaticResource fadeIn}" />
                                         </DataTrigger.EnterActions>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Player.Host.IsFullScreen}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -283,6 +287,21 @@
                     </Grid>
 
                     <Border Grid.Row="2" VerticalAlignment="Bottom" Height="22" Background="#D4D0C8" BorderThickness="0 1 0 0" BorderBrush="#808080">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Player.Host.IsFullScreen}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Player.Activity.Mode}" Value="Idle">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Player.Activity.Mode}" Value="Active">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
                         <Grid Margin="4 0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>

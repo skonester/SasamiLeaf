@@ -28,16 +28,9 @@
                         </ResourceDictionary>
                     </ControlTemplate.Resources>
                     <Border DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type flwpf:FlyleafBar}}}" 
-                            Background="#D4D0C8" BorderThickness="2" VerticalAlignment="Bottom" Focusable="False" Margin="0"
+                            Background="#D4D0C8" VerticalAlignment="Bottom" Focusable="False" Margin="0"
+                            SnapsToDevicePixels="True" UseLayoutRounding="True"
                             TextElement.Foreground="#000000" TextElement.FontSize="11" TextElement.FontFamily="Tahoma">
-                        <Border.BorderBrush>
-                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                <GradientStop Color="White" Offset="0"/>
-                                <GradientStop Color="White" Offset="0.5"/>
-                                <GradientStop Color="#404040" Offset="0.5"/>
-                                <GradientStop Color="#404040" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Border.BorderBrush>
                         <Border.Style>
                             <Style TargetType="{x:Type Border}">
                                 <Style.Triggers>
@@ -46,12 +39,14 @@
                                             <RemoveStoryboard BeginStoryboardName="fadeInN" />
                                             <BeginStoryboard x:Name="fadeOutN" Storyboard="{StaticResource fadeOut}" />
                                         </DataTrigger.EnterActions>
+                                        <Setter Property="IsHitTestVisible" Value="False"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Player.Activity.Mode}" Value="Active">
                                         <DataTrigger.EnterActions>
                                             <RemoveStoryboard BeginStoryboardName="fadeInN" />
                                             <BeginStoryboard x:Name="fadeOutN2" Storyboard="{StaticResource fadeOut}" />
                                         </DataTrigger.EnterActions>
+                                        <Setter Property="IsHitTestVisible" Value="False"/>
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Player.Activity.Mode, FallbackValue=FullActive, TargetNullValue=FullActive}" Value="FullActive">
                                         <DataTrigger.EnterActions>
@@ -59,18 +54,23 @@
                                             <RemoveStoryboard BeginStoryboardName="fadeOutN2" />
                                             <BeginStoryboard x:Name="fadeInN" Storyboard="{StaticResource fadeIn}" />
                                         </DataTrigger.EnterActions>
+                                        <Setter Property="IsHitTestVisible" Value="True"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </Border.Style>
+                        <Border BorderThickness="1,1,0,0" BorderBrush="White">
+                            <Border BorderThickness="0,0,1,1" BorderBrush="#404040">
+                                <Border BorderThickness="1,1,0,0" BorderBrush="#E0E0E0">
+                                    <Border BorderThickness="0,0,1,1" BorderBrush="#808080">
 
                         <Grid>
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="28"/>
-                                <RowDefinition Height="36"/>
+                                <RowDefinition Height="32"/>
+                                <RowDefinition Height="44"/>
                             </Grid.RowDefinitions>
 
-                            <Grid Grid.Row="0" Margin="5,4,5,2">
+                            <Grid Grid.Row="0" Margin="5,6,5,2">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="auto"/>
                                     <ColumnDefinition Width="*"/>
@@ -110,9 +110,23 @@
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="Button">
-                                                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
-                                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                            <Grid>
+                                                                <Border x:Name="OuterLight" BorderThickness="1,1,0,0" BorderBrush="White"/>
+                                                                <Border x:Name="OuterDark" BorderThickness="0,0,1,1" BorderBrush="#404040"/>
+                                                                <Border x:Name="InnerLight" BorderThickness="1,1,0,0" BorderBrush="#E0E0E0" Margin="1"/>
+                                                                <Border x:Name="InnerDark" BorderThickness="0,0,1,1" BorderBrush="#808080" Margin="1"/>
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2"/>
+                                                            </Grid>
                                                         </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsPressed" Value="True">
+                                                                <Setter TargetName="OuterLight" Property="BorderBrush" Value="#404040"/>
+                                                                <Setter TargetName="OuterDark" Property="BorderBrush" Value="White"/>
+                                                                <Setter TargetName="InnerLight" Property="BorderBrush" Value="#808080"/>
+                                                                <Setter TargetName="InnerDark" Property="BorderBrush" Value="#E0E0E0"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
                                                     </ControlTemplate>
                                                 </Setter.Value>
                                             </Setter>
@@ -285,6 +299,10 @@
                                               materialDesign:ToggleButtonAssist.OnContent="{materialDesign:PackIcon Kind=FullscreenExit, Size=20}"/>
                             </Grid>
                         </Grid>
+                                    </Border>
+                                </Border>
+                            </Border>
+                        </Border>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>

@@ -6,6 +6,7 @@
 #define MyAppVersion "1.0"
 #define MyAppPublisher "Skonester"
 #define MyAppExeName "SasamiLeaf.exe"
+#define Config "Debug"
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -19,7 +20,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=.
 OutputBaseFilename=SasamiLeaf_Setup
-SetupIconFile=Samples\SasamiLeaf\Flyleaf.ico
+SetupIconFile=SasamiLeaf\Flyleaf.ico
 Compression=lzma
 SolidCompression=yes
 ArchitecturesAllowed=x64compatible
@@ -32,7 +33,6 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-; Include all files from the publish output folder
 Source: "publish_out\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs ignoreversion
 
 [Icons]

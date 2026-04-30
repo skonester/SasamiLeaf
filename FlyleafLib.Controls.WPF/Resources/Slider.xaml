@@ -52,13 +52,11 @@
                 <TickBar x:Name="BottomTick" Fill="{TemplateBinding Foreground}" Height="4" Margin="0,2,0,0" Placement="Bottom" Grid.Row="2" Visibility="Collapsed"/>
                 
                 <!-- Track Background -->
-                <Border x:Name="trackBackground" Grid.Row="1" Height="4" Background="#808080" BorderThickness="1" VerticalAlignment="Center">
-                    <Border.BorderBrush>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#404040" Offset="0"/>
-                            <GradientStop Color="White" Offset="1"/>
-                        </LinearGradientBrush>
-                    </Border.BorderBrush>
+                <Border x:Name="trackBackground" Grid.Row="1" Height="4" Background="#808080" VerticalAlignment="Center">
+                    <Grid>
+                        <Border BorderThickness="1,1,0,0" BorderBrush="#404040"/>
+                        <Border BorderThickness="0,0,1,1" BorderBrush="White"/>
+                    </Grid>
                 </Border>
                 
                 <!-- Active Track -->

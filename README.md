@@ -1,4 +1,4 @@
-﻿# *SasamiLeaf v3.10*: Media Player .NET Library for WPF (based on FFmpeg/DirectX)
+# *SasamiLeaf v3.10*: Media Player .NET Library for WPF (based on FFmpeg/DirectX)
 
 ![alt text](Images/Flyleafv3.6.png)
 
@@ -25,6 +25,16 @@
 
 - *Provides a DPI aware, hardware accelerated Direct3D Surface (SasamiLeafHost) which can be hosted as normal control to your application and easily develop above it your own transparent overlay content*
 - *All the implementation uses UI notifications (PropertyChanged / ObservableCollection etc.) so you can use it as a ViewModel directly* - *For WPF provides a Control (SasamiLeafME) with all the basic UI sub-controls (Bar, Settings, Popup menu) and can be customized with style / control template overrides*
+
+# [Recent Changes (4/30)]
+
+- ✅ **Playback Interaction**: Added support for toggling play/pause by clicking anywhere on the video area.
+- ✅ **Fullscreen Polish**: Title Bar and Status Bar now automatically collapse in fullscreen or during inactivity.
+- ✅ **Improved UI Ergonomics**: Increased target sizes for the seeker bar (32px) and control buttons (44px).
+- ✅ **System Compatibility**: Fixed crash when installed in `C:\Program Files` by migrating all configuration files to `AppData`.
+- ✅ **Stability Fixes**: Added null-safety to Tray Icon and Single-Instance activation logic to prevent startup/resume crashes.
+- ✅ **Distribution**: Finalized `Build_Installer.bat` and Inno Setup configuration for automated, self-contained distribution.
+
 
 # [Features]
 
