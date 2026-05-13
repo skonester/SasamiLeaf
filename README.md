@@ -37,7 +37,7 @@ The repository also includes the reusable Flyleaf-based libraries and plugins us
 - **FFmpeg powered:** Supports FFmpeg 7.1 and 8.0 bindings depending on the target project.
 - **Hardware accelerated rendering:** Direct3D/DirectX rendering with video acceleration and custom pixel shader support.
 - **Smooth controls:** Fast open, play, pause, stop, seek, frame stepping, stream switching, and cancellation-aware threading.
-- **WPF friendly:** DPI-aware `SasamiLeafHost` and a ready-to-style `SasamiLeafME` media element.
+- **WPF friendly:** DPI-aware `FlyleafHost` and a ready-to-style `FlyleafME` media element.
 - **Extensible:** Custom I/O streams, protocol handlers, subtitle conversion, online subtitles, torrent playback, and yt-dlp integration.
 - **Installer ready:** Includes `Build_Installer.bat` and an Inno Setup script for packaging a self-contained Windows installer.
 
@@ -141,7 +141,7 @@ Then compile `SasamiLeaf_Installer.iss` with Inno Setup to generate `SasamiLeaf_
 
 ### UI Controls
 
-`SasamiLeafHost`:
+`FlyleafHost`:
 
 - Attach and detach.
 - Activity and idle modes.
@@ -150,7 +150,7 @@ Then compile `SasamiLeaf_Installer.iss` with Inno Setup to generate `SasamiLeaf_
 - Resize with optional aspect ratio preservation.
 - Z-order control.
 
-`SasamiLeafME`:
+`FlyleafME`:
 
 - WPF media element control.
 - Media bar, slider, popup menu, and settings dialog.
