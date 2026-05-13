@@ -1,128 +1,207 @@
-# *SasamiLeaf v3.10*: Media Player .NET Library for WPF (based on FFmpeg/DirectX)
+# SasamiLeaf
 
-![alt text](Images/Flyleafv3.6.png)
+**A Windows media player and .NET/WPF media library built on FFmpeg, DirectX, and Flyleaf.**
+
+![SasamiLeaf media player screenshot](Images/Flyleafv3.6.png)
+
+[![Release](https://img.shields.io/github/v/release/skonester/SasamiLeaf?include_prereleases&sort=semver&label=release)](https://github.com/skonester/SasamiLeaf/releases)
+[![Release downloads](https://img.shields.io/github/downloads/skonester/SasamiLeaf/total?label=release%20downloads)](https://github.com/skonester/SasamiLeaf/releases)
+[![License](https://img.shields.io/badge/license-LGPL--3.0--or--later-blue)](LICENSE.txt)
+[![.NET](https://img.shields.io/badge/.NET-8%20%7C%2010-512BD4)](https://dotnet.microsoft.com/)
+[![Windows](https://img.shields.io/badge/platform-Windows-0078D4)](https://www.microsoft.com/windows)
+[![WPF](https://img.shields.io/badge/UI-WPF-5C2D91)](https://learn.microsoft.com/dotnet/desktop/wpf/)
+[![FFmpeg](https://img.shields.io/badge/media-FFmpeg-007808)](https://ffmpeg.org/)
+[![DirectX](https://img.shields.io/badge/rendering-DirectX-107C10)](https://learn.microsoft.com/windows/win32/directx)
+[![NuGet FlyleafLib](https://img.shields.io/nuget/v/FlyleafLib?label=FlyleafLib)](https://www.nuget.org/packages/FlyleafLib)
+[![NuGet downloads](https://img.shields.io/nuget/dt/FlyleafLib?label=FlyleafLib%20downloads)](https://www.nuget.org/packages/FlyleafLib)
 
 ---
 
->Notes<br/>
->1. SasamiLeafLib's releases will be on [NuGet](https://www.nuget.org/packages?q=flyleaf)
->2. Compiled samples will be on [GitHub releases](https://github.com/SuRGeoNix/Flyleaf/releases)
->3. Documentation will be on [Wiki](https://github.com/SuRGeoNix/Flyleaf/wiki) and [Samples](https://github.com/SuRGeoNix/Flyleaf/tree/master/Samples) within the solution
+## What It Is
 
-# [Overview]
+SasamiLeaf is a desktop media player built from Flyleaf's FFmpeg/DirectX playback stack. It is designed for smooth local and streaming playback, responsive WPF integration, and practical distribution as a self-contained Windows app.
 
-✅ **Play Everything** <sub>(Audio, Videos, Images, Playlists over any Protocol)</sub>
+The repository also includes the reusable Flyleaf-based libraries and plugins used by the player.
 
-- *Extends FFmpeg's supported protocols and formats with additional plugins <sub>(YoutubeDL, TorrentBitSwarm)</sub>*
-- *Accepts Custom I/O Streams and Plugins to handle non-standard protocols / formats*
-  
-✅ **Play it Smoothly** <sub>(Even with high resolutions 4K / HDR)</sub>
+## Quick Links
 
-- *Coded from scratch to gain the best possible performance with FFmpeg & DirectX using video acceleration and custom pixel shaders*
-- *Threading implementation with efficient cancellation which allows fast open, play, pause, stop, seek and stream switching*
-  
-✅ **Develop it Easy**
+- **Downloads:** [GitHub Releases](https://github.com/skonester/SasamiLeaf/releases)
+- **Library packages:** [NuGet Flyleaf packages](https://www.nuget.org/packages?q=flyleaf)
+- **License:** [LGPL-3.0-or-later](LICENSE.txt)
+- **Upstream project:** [SuRGeoNix/Flyleaf](https://github.com/SuRGeoNix/Flyleaf)
+- **Upstream documentation:** [Flyleaf Wiki](https://github.com/SuRGeoNix/Flyleaf/wiki)
 
-- *Provides a DPI aware, hardware accelerated Direct3D Surface (SasamiLeafHost) which can be hosted as normal control to your application and easily develop above it your own transparent overlay content*
-- *All the implementation uses UI notifications (PropertyChanged / ObservableCollection etc.) so you can use it as a ViewModel directly* - *For WPF provides a Control (SasamiLeafME) with all the basic UI sub-controls (Bar, Settings, Popup menu) and can be customized with style / control template overrides*
+## Highlights
 
-# [Recent Changes (4/30)]
+- **Broad media support:** Audio, video, images, playlists, capture devices, network streams, and plugin-backed protocols.
+- **FFmpeg powered:** Supports FFmpeg 7.1 and 8.0 bindings depending on the target project.
+- **Hardware accelerated rendering:** Direct3D/DirectX rendering with video acceleration and custom pixel shader support.
+- **Smooth controls:** Fast open, play, pause, stop, seek, frame stepping, stream switching, and cancellation-aware threading.
+- **WPF friendly:** DPI-aware `SasamiLeafHost` and a ready-to-style `SasamiLeafME` media element.
+- **Extensible:** Custom I/O streams, protocol handlers, subtitle conversion, online subtitles, torrent playback, and yt-dlp integration.
+- **Installer ready:** Includes `Build_Installer.bat` and an Inno Setup script for packaging a self-contained Windows installer.
 
-- ✅ **Playback Interaction**: Added support for toggling play/pause by clicking anywhere on the video area.
-- ✅ **Fullscreen Polish**: Title Bar and Status Bar now automatically collapse in fullscreen or during inactivity.
-- ✅ **Improved UI Ergonomics**: Increased target sizes for the seeker bar (32px) and control buttons (44px).
-- ✅ **System Compatibility**: Fixed crash when installed in `C:\Program Files` by migrating all configuration files to `AppData`.
-- ✅ **Stability Fixes**: Added null-safety to Tray Icon and Single-Instance activation logic to prevent startup/resume crashes.
-- ✅ **Distribution**: Finalized `Build_Installer.bat` and Inno Setup configuration for automated, self-contained distribution.
+## Recent Changes
 
+April 30 update:
 
-# [Features]
+- Added click-anywhere video play/pause toggling.
+- Automatically collapse the title bar and status bar during fullscreen or inactivity.
+- Increased seeker bar and control button target sizes for easier interaction.
+- Moved configuration files to `AppData` to avoid crashes when installed under `C:\Program Files`.
+- Added null-safety around tray icon and single-instance activation paths.
+- Finalized automated publish preparation with `Build_Installer.bat` and `SasamiLeaf_Installer.iss`.
 
-### **FFmpeg**
-- *HLS Live Seeking <sub>Might the 1st FFmpeg player which does that</sub>*
-- *Pached for [HLS](https://patchwork.ffmpeg.org/project/ffmpeg/list/?series=1018) and [.NET](https://developercommunity.microsoft.com/t/Proper-handling-of-MS_VC_EXCEPTION-0x40/10961029) issues <sub>Use recommended FFmpeg libraries which can be found on GitHub releases</sub>*
-- *Capture Devices <sub>Pass the format, input and options with a single Url eg. fmt://gdigrab?desktop&framerate=30</sub>*
-- *Supports FFmpeg v7.1 and v8.0 <sub>(use SasamiLeaf.FFmpeg.Bindings v8 at your project)</sub>*
+## Build From Source
 
-### **Playback**
-- *Open / Play / Pause / Stop*
-- *Speed / Reverse / Zero-Low Latency*
-- *Seek Backward / Forward <sub>(Short / Large Step)</sub>*
-- *Seek to Time / Seek to Frame / Seek to Chapter / Frame Stepping*
+Requirements:
 
-### **Video**
-- *Enable / Disable*
-- *Device Preference*
-- *Aspect Ratio <sub>(Keep / Fill / Custom)</sub>*
-- *Deinterlace <sub>(Supports double rate, D3D11VP only)</sub>*
-- *HDR to SDR <sub>(Aces / Hable / Reinhard - SasamiLeafVP only)</sub>*
-- *Pan Move / Zoom / Rotate / HFlip-VFlip / Cropping <sub>~~(Replica Renderer/Interactive Zoom)~~</sub>*
-- *Record / Snapshot*
-- *Super Resolution <sub>(Nvidia / Intel - D3D11VP only)</sub>*
-- *Video Acceleration*
-- *Video Filters <sub>(Brightness / Contrast / Hue / Saturation)</sub>*
-- *Video Processors <sub>(SasamiLeafVP / D3D11VP)</sub>*
-- *VSync*
-- *Zero-Copy <sub>(Crops with vertex shader)</sub>*
-- *Split-Frame / Alpha Packing <sub>(Special technique to support alpha with hardware acceleration)</sub>*
+- Windows
+- .NET SDK with Windows desktop workload support
+- FFmpeg files from this repository
+- Inno Setup, only if you want to build the installer
 
-### **Audio**
-- *Enable / Disable*
-- *Device Preference*
-- *Add / Remove Delay <sub>(Short / Large Step)</sub>*
-- *Volume <sub>(Up / Down / Mute)</sub>*
-- *Languages support <sub>System's default languages as priorities for audio streams</sub>*
+Build the app:
 
-### **Subtitles**
-- *Enable / Disable*
-- *Add / Remove Delay <sub>(Short / Large Step)</sub>*
-- *Bitmap Subtitles support*
-- *Advanced Character Detection and Convert to UTF-8 <sub>SubtitlesConverter plugin</sub>*
-- *Languages support <sub>System's default languages as priorities for subtitles streams</sub>*
+```powershell
+dotnet build SasamiLeaf\SasamiLeaf.csproj
+```
 
-### **UI Control (SasamiLeafHost)** <sub>*WPF / WinUI &amp; WinForms (Partially)*</sub>
-- *Attach / Detach*
-- *Activity / Idle Mode*
-- *Drag Move <sub>(Self / Owner)</sub>*
-- *Drag & Drop Swap*
-- *Drag & Drop Open*
-- *Full / Normal Screen*
-- *Resize / Resize & Keep Ratio*
-- *Z-Order*
+Publish a self-contained Win-x64 build:
 
-### **UI Control (SasamiLeafME)** <sub>*WPF Only*</sub>
-- *SasamiLeaf Bar Control / Slider*
-- *SasamiLeaf Popup Menu*
-- *SasamiLeaf Settings Dialog*
-- *Color Themes <sub>Based on Material Design in XAML</sub>*
-- *Style / Control Template Customization*
+```powershell
+dotnet publish SasamiLeaf\SasamiLeaf.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -o publish_out
+```
 
-### **Plugins**
-- *OpenSubtitlesOrg <sub>Search & Download for online Subtitles</sub>*
-- *SubtitlesConverter <sub>Detect & Convert the input's charset to UTF-8</sub>*
-- *TorrentBitSwarm <sub>Play a media from torrent without the need to download it completely</sub>*
-- *YoutubeDL <sub>Play web media that are not accessible directly with HTTP(s)</sub>*
+Prepare installer files:
 
-### Misc.
-- *Mouse & Key Bindings <sub>All the implementation supports customizable mouse & key bindings which can be assigned to an embedded or a custom actions (find defaults [here](https://github.com/SuRGeoNix/Flyleaf/wiki/Player-(Key-&-Mouse-Bindings)))</sub>*
-- *Audio Player <sub>Can be used as an audio player only without the need of UI Control</sub>*
-- *Downloader / Remuxer <sub>The library can be used also for downloading & remuxing</sub>*
-- *Extractor <sub>The library can be used also for extracting video frames (supports also by X frames Step)</sub>*
+```bat
+Build_Installer.bat
+```
 
-# [Thanks to]
+Then compile `SasamiLeaf_Installer.iss` with Inno Setup to generate `SasamiLeaf_Setup.exe`.
 
-*SasamiLeaf wouldn't exist without them!*
+## Project Layout
 
-* *For the Core*
-  * ***[FFmpeg](http://ffmpeg.org/)*** / ***[FFmpeg.AutoGen](https://github.com/Ruslan-B/FFmpeg.AutoGen/)*** / ***[SasamiLeaf.FFmpeg.Bindings](https://github.com/SuRGeoNix/Flyleaf.FFmpeg.Generator)***
-  * ***[Vortice](https://github.com/amerkoleci/Vortice.Windows)***
-  * *Major open source media players* ***[VLC](https://github.com/videolan/vlc)***, ***[Kodi](https://github.com/xbmc/xbmc)***, ***[MPV](https://github.com/mpv-player/mpv)***, ***[MPC-BE](https://github.com/Aleksoid1978/MPC-BE)***, ***[FFplay](https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffplay.c)***
+| Path | Purpose |
+| --- | --- |
+| `SasamiLeaf/` | WPF desktop player application. |
+| `FlyleafLib/` | Core media playback library. |
+| `FlyleafLib.Controls.WPF/` | WPF controls and media element integration. |
+| `Plugins/` | Optional protocol, subtitle, torrent, and web media plugins. |
+| `FFmpeg/` | Runtime FFmpeg binaries used by published builds. |
+| `Images/` | Repository images and package assets. |
+| `Build_Installer.bat` | Publishes the app into `publish_out`. |
+| `SasamiLeaf_Installer.iss` | Inno Setup installer definition. |
 
-* *For the UI*
-  * ***[Dragablz](https://github.com/ButchersBoy/Dragablz)***
-  * ***[MaterialDesign Colors & Themes](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/)***
+## Feature Overview
 
-* *For the Plugins*
-  * ***[BitSwarm](https://github.com/SuRGeoNix/BitSwarm)***
-  * ***[OpenSubtitles.org](https://www.opensubtitles.org/)***
-  * ***[YT-DLP](https://github.com/yt-dlp/yt-dlp)***
+### Playback
+
+- Open, play, pause, stop, seek, and stream switch.
+- Speed control, reverse playback, low-latency modes, and zero-latency modes.
+- Seek backward/forward by short or large steps.
+- Seek to time, frame, or chapter.
+- Frame stepping.
+
+### Video
+
+- Enable or disable video streams.
+- Device preference selection.
+- Keep, fill, or custom aspect ratio modes.
+- Deinterlacing, including double-rate support with D3D11VP.
+- HDR-to-SDR conversion with Aces, Hable, and Reinhard tone mapping.
+- Pan, move, zoom, rotate, horizontal flip, vertical flip, and cropping.
+- Recording and snapshots.
+- NVIDIA and Intel super resolution support through D3D11VP.
+- Video acceleration, video filters, video processors, VSync, zero-copy rendering, split-frame, and alpha packing.
+
+### Audio
+
+- Enable or disable audio streams.
+- Device preference selection.
+- Audio delay adjustment.
+- Volume up, down, and mute.
+- System language priorities for audio streams.
+
+### Subtitles
+
+- Enable or disable subtitle streams.
+- Subtitle delay adjustment.
+- Bitmap subtitle support.
+- Advanced character detection and UTF-8 conversion through the SubtitlesConverter plugin.
+- System language priorities for subtitle streams.
+
+### FFmpeg
+
+- HLS live seeking.
+- Capture devices using compact URLs such as `fmt://gdigrab?desktop&framerate=30`.
+- Patched FFmpeg behavior for known HLS and .NET interop issues.
+- FFmpeg 7.1 and 8.0 binding support.
+
+### UI Controls
+
+`SasamiLeafHost`:
+
+- Attach and detach.
+- Activity and idle modes.
+- Drag move, drag-and-drop swap, and drag-and-drop open.
+- Fullscreen and normal screen modes.
+- Resize with optional aspect ratio preservation.
+- Z-order control.
+
+`SasamiLeafME`:
+
+- WPF media element control.
+- Media bar, slider, popup menu, and settings dialog.
+- Material Design based color themes.
+- Style and control template customization.
+
+### Plugins
+
+- **OpenSubtitlesOrg:** Search and download online subtitles.
+- **SubtitlesConverter:** Detect subtitle encoding and convert input text to UTF-8.
+- **TorrentBitSwarm:** Stream media from torrents before the full download completes.
+- **YoutubeDL:** Play web media that is not directly accessible through HTTP(S).
+
+### Library Uses
+
+- Embed a hardware-accelerated media surface in a WPF app.
+- Use the player implementation as a ViewModel with `PropertyChanged` and observable collection notifications.
+- Build an audio-only player without hosting a video surface.
+- Download, remux, or extract frames from supported media.
+- Customize mouse and keyboard bindings for embedded or custom actions.
+
+## Technology
+
+| Area | Stack |
+| --- | --- |
+| Runtime | .NET 8 / .NET 10 Windows targets |
+| UI | WPF, WinForms interop support, WinUI/WinForms partial host support |
+| Media | FFmpeg, Flyleaf.FFmpeg.Bindings |
+| Rendering | DirectX, Direct3D11, DirectComposition, Vortice.Windows |
+| Audio | XAudio2 |
+| Packaging | `dotnet publish`, Inno Setup |
+
+## Credits
+
+SasamiLeaf is based on the Flyleaf project and the work of many open-source media projects and libraries.
+
+Core:
+
+- [FFmpeg](https://ffmpeg.org/)
+- [FFmpeg.AutoGen](https://github.com/Ruslan-B/FFmpeg.AutoGen/)
+- [Flyleaf.FFmpeg.Bindings](https://github.com/SuRGeoNix/Flyleaf.FFmpeg.Generator)
+- [Vortice.Windows](https://github.com/amerkoleci/Vortice.Windows)
+- [VLC](https://github.com/videolan/vlc), [Kodi](https://github.com/xbmc/xbmc), [MPV](https://github.com/mpv-player/mpv), [MPC-BE](https://github.com/Aleksoid1978/MPC-BE), and [FFplay](https://github.com/FFmpeg/FFmpeg/blob/master/fftools/ffplay.c)
+
+UI:
+
+- [Dragablz](https://github.com/ButchersBoy/Dragablz)
+- [MaterialDesignInXamlToolkit](https://github.com/MaterialDesignInXAML/MaterialDesignInXamlToolkit/)
+
+Plugins:
+
+- [BitSwarm](https://github.com/SuRGeoNix/BitSwarm)
+- [OpenSubtitles.org](https://www.opensubtitles.org/)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
