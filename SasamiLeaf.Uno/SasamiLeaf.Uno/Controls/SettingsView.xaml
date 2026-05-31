@@ -1,0 +1,129 @@
+<UserControl
+    x:Class="SasamiLeaf.Uno.Controls.SettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:SasamiLeaf.Uno.Converters"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <UserControl.Resources>
+        <converters:TicksToTimeConverter x:Key="TicksToTime"/>
+        <converters:ColorToBrushConverter x:Key="ColorToBrush"/>
+        <converters:InvertBooleanConverter x:Key="InvertBoolean"/>
+    </UserControl.Resources>
+
+    <Grid Margin="12" MinWidth="480" Height="400">
+        <TabView x:Name="SettingsTabView" IsAddTabButtonVisible="False">
+            <!-- Player Tab -->
+            <TabViewItem Header="Player" IsClosable="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Idle Timeout (ms)" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding ActivityTimeout, Mode=TwoWay}" Width="150" SmallChange="100" LargeChange="1000"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Max Audio Frames" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding Config.Decoder.MaxAudioFrames, Mode=TwoWay}" Width="150" SmallChange="1" LargeChange="10"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Max Video Frames" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding Config.Decoder.MaxVideoFrames, Mode=TwoWay}" Width="150" SmallChange="1" LargeChange="10"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Max Vertical Resolution" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding Config.Video.MaxVerticalResolutionCustom, Mode=TwoWay}" Width="150" SmallChange="100" LargeChange="1000"/>
+                        </StackPanel>
+
+                        <MenuFlyoutSeparator Margin="0,8,0,8"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Log Level" Width="200" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="CmbLogLevel" SelectedItem="{Binding ConfigEngine.LogLevel, Mode=TwoWay}" Width="150"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- Audio Tab -->
+            <TabViewItem Header="Audio" IsClosable="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <ToggleSwitch Header="Enable Audio" IsOn="{Binding Config.Audio.Enabled, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="Use Filters" IsOn="{Binding Config.Audio.FiltersEnabled, Mode=TwoWay}"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Delay (ticks)" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding Config.Audio.Delay, Mode=TwoWay}" Width="150"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Current Device" Width="200" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding AudioEngine.CurrentDevice.Name}" FontWeight="Bold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- Subtitles Tab -->
+            <TabViewItem Header="Subtitles" IsClosable="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <ToggleSwitch Header="Enable Subtitles" IsOn="{Binding Config.Subtitles.Enabled, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="Search Local Files" IsOn="{Binding Config.Subtitles.SearchLocal, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="Search Online" IsOn="{Binding Config.Subtitles.SearchOnline, Mode=TwoWay}"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Delay (ticks)" Width="200" VerticalAlignment="Center"/>
+                            <NumberBox Value="{Binding Config.Subtitles.Delay, Mode=TwoWay}" Width="150"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Subtitle Size (px)" Width="200" VerticalAlignment="Center"/>
+                            <Slider Value="{Binding UIConfig.SubsFontSize, Mode=TwoWay}" Minimum="16" Maximum="72" Width="200" Header="Font Size"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- Video Tab -->
+            <TabViewItem Header="Video" IsClosable="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Aspect Ratio" Width="200" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="CmbAspectRatio" SelectedItem="{Binding Config.Video.AspectRatio, Mode=TwoWay}" Width="150"/>
+                        </StackPanel>
+
+                        <ToggleSwitch Header="Double Rate Deinterlacing" IsOn="{Binding Config.Video.DoubleRate, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="Super Resolution" IsOn="{Binding Config.Video.SuperResolution, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="VSync" IsOn="{Binding Config.Video.VSync, Mode=TwoWay}"/>
+                        <ToggleSwitch Header="Hardware Acceleration" IsOn="{Binding Config.Video.VideoAcceleration, Mode=TwoWay}"/>
+
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="SDR Display Nits" Width="200" VerticalAlignment="Center"/>
+                            <Slider Value="{Binding Config.Video.SDRDisplayNits, Mode=TwoWay}" Minimum="25" Maximum="400" Width="200"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+
+            <!-- Themes Tab -->
+            <TabViewItem Header="Themes" IsClosable="False">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel Spacing="12">
+                        <StackPanel Orientation="Horizontal" Spacing="24">
+                            <TextBlock Text="Selected Theme" Width="200" VerticalAlignment="Center"/>
+                            <ComboBox ItemsSource="{Binding UIConfig.Themes}" SelectedItem="{Binding SelectedTheme, Mode=TwoWay}" DisplayMemberPath="Name" Width="200"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabViewItem>
+        </TabView>
+    </Grid>
+</UserControl>
