@@ -1,6 +1,6 @@
 # SasamiLeaf
 
-**A Windows media player and .NET/WPF media library built on FFmpeg, DirectX, and Flyleaf.**
+**The logical evolution of the Sasami2k media player from Windows 2000 if it had been maintained over the years. Built on FFmpeg, DirectX, and Flyleaf as a modern Windows media player and .NET/WPF library.**
 
 ![SasamiLeaf media player screenshot](Images/Flyleafv3.6.png)
 
