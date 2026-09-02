@@ -101,8 +101,9 @@
                     <Grid Grid.Row="0" x:Name="HeaderGrid" Margin="0">
                         <Grid.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#000080" Offset="0"/>
-                                <GradientStop Color="#1084d0" Offset="1"/>
+                                <GradientStop Color="#007C91" Offset="0"/>
+                                <GradientStop Color="#1268B3" Offset="0.5"/>
+                                <GradientStop Color="#E85C3D" Offset="1"/>
                             </LinearGradientBrush>
                         </Grid.Background>
                         <Grid.RowDefinitions>
