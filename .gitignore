@@ -14,6 +14,9 @@
 *.userprefs
 
 # Build results
+/publish_out/
+/SasamiLeaf_Setup.exe
+/SasamiLeaf_Standalone_Setup.exe
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

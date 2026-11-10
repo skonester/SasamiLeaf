@@ -4,11 +4,13 @@
 ; Build with Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 
 #define AppName "SasamiLeaf"
-#define AppVersion "2.0"
+#ifndef AppVersion
+  #define AppVersion "2.0.0"
+#endif
 #define AppPublisher "SasamiLeaf Project"
-#define AppURL "https://github.com/SasamiLeaf"
+#define AppURL "https://github.com/skonester/SasamiLeaf"
 #define AppExeName "SasamiLeaf.exe"
-#define AppIcon "SasamLeaf.ico"
+#define AppIcon "SasamiLeaf\Flyleaf.ico"
 #define MediaExts ".mp4|.mkv|.avi|.mov|.wmv|.flv|.webm|.m4v|.mpg|.mpeg|.ts|.m2ts"
 
 [Setup]
@@ -33,7 +35,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 SetupIconFile={#AppIcon}
-UninstallDisplayIcon={app}\{#AppIcon}
+UninstallDisplayIcon={app}\{#AppExeName}
 MinVersion=10.0.17763
 
 [Languages]
@@ -46,27 +48,19 @@ Name: "startmenu"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: 
 Name: "fileassoc"; Description: "Associate SasamiLeaf with media files ({#MediaExts})"; GroupDescription: "File associations:"; Flags: checkedonce
 
 [Files]
-Source: "{#AppExeName}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#AppIcon}"; DestDir: "{app}"; Flags: ignoreversion
-Source: "FFmpeg\*"; DestDir: "{app}\FFmpeg"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "Plugins\*"; DestDir: "{app}\Plugins"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D3DCompiler_47_cor3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "PenImc_cor3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "PresentationNative_cor3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "vcruntime140_cor3.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "wpfgfx_cor3.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "publish_out\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\{#AppIcon}"; WorkingDir: "{app}"
+Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; IconFilename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
 Name: "{group}\Uninstall {#AppName}"; Filename: "{uninstallexe}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31
-Name: "{commondesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon; IconFilename: "{app}\{#AppIcon}"; WorkingDir: "{app}"
-Name: "{userappdata}\Microsoft\Windows\Start Menu\Programs\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: startmenu; IconFilename: "{app}\{#AppIcon}"; WorkingDir: "{app}"
+Name: "{commondesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon; IconFilename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
+Name: "{userappdata}\Microsoft\Windows\Start Menu\Programs\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: startmenu; IconFilename: "{app}\{#AppExeName}"; WorkingDir: "{app}"
 
 [Registry]
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile"; ValueType: string; ValueName: ""; ValueData: "SasamiLeaf Media File"; Flags: uninsdeletekey; Tasks: fileassoc
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile"; ValueType: string; ValueName: "FriendlyTypeName"; ValueData: "SasamiLeaf Media File"; Flags: uninsdeletevalue; Tasks: fileassoc
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile"; ValueType: string; ValueName: "PerceivedType"; ValueData: "video"; Flags: uninsdeletevalue; Tasks: fileassoc
-Root: HKCR; Subkey: "SasamiLeaf.MediaFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppIcon},0"; Flags: uninsdeletevalue; Tasks: fileassoc
+Root: HKCR; Subkey: "SasamiLeaf.MediaFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExeName},0"; Flags: uninsdeletevalue; Tasks: fileassoc
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletevalue; Tasks: fileassoc
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile\shell\open"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "{#AppName}"; Flags: uninsdeletevalue; Tasks: fileassoc
 Root: HKCR; Subkey: "SasamiLeaf.MediaFile\shell\play\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExeName}"" ""%1"""; Flags: uninsdeletevalue; Tasks: fileassoc

@@ -1,0 +1,152 @@
+name: Build and release Windows installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing version tag to build (for example, v2.0.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build self-contained Windows x64 installer
+    runs-on: windows-2025
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          persist-credentials: false
+
+      - name: Resolve release version
+        id: version
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?)$') {
+            throw 'Release tags must use vMAJOR.MINOR.PATCH, optionally with a prerelease suffix (for example, v2.0.1-beta.1).'
+          }
+          $version = $Matches.version
+          "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "prerelease=$($version.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6
+        with:
+          dotnet-version: '10.0.x'
+
+      # The solution builds the plugins and supplies SolutionDir to their copy targets.
+      - name: Build application and plugins
+        run: dotnet build SasamiLeaf.sln -c Release -p:TargetFrameworks=net10.0-windows --nologo
+
+      - name: Publish self-contained application
+        run: >-
+          dotnet publish SasamiLeaf/SasamiLeaf.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=false -p:Version=$env:APP_VERSION
+          -o publish_out --nologo
+
+      - name: Verify installer payload
+        run: |
+          $requiredFiles = @(
+            'SasamiLeaf.exe',
+            'SasamiLeaf.dll',
+            'coreclr.dll',
+            'FFmpeg/avcodec-62.dll',
+            'FFmpeg/avformat-62.dll',
+            'FFmpeg/avutil-60.dll',
+            'Plugins/OpenSubtitlesOrg/OpenSubtitlesOrg.dll',
+            'Plugins/SubtitlesConverter/SubtitlesConverter.dll',
+            'Plugins/TorrentBitSwarm/TorrentBitSwarm.dll',
+            'Plugins/YoutubeDL/YoutubeDL.dll'
+          )
+          foreach ($file in $requiredFiles) {
+            if (-not (Test-Path -LiteralPath (Join-Path 'publish_out' $file) -PathType Leaf)) {
+              throw "Installer payload is missing $file"
+            }
+          }
+
+      - name: Compile setup executable
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6/ISCC.exe'
+          if (-not (Test-Path -LiteralPath $compiler)) {
+            throw "Inno Setup compiler was not found at $compiler"
+          }
+          & $compiler "/DAppVersion=$env:APP_VERSION" '/Oartifacts' 'SasamiLeaf_Standalone.iss'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Generate SHA-256 checksum
+        run: |
+          $installer = Get-Item -LiteralPath 'artifacts/SasamiLeaf_Standalone_Setup.exe'
+          $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content -LiteralPath 'artifacts/SHA256SUMS.txt' -Encoding ascii
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: SasamiLeaf-${{ steps.version.outputs.version }}-win-x64
+          path: |
+            artifacts/SasamiLeaf_Standalone_Setup.exe
+            artifacts/SHA256SUMS.txt
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download installer artifact
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: SasamiLeaf-${{ needs.build.outputs.version }}-win-x64
+          path: artifacts
+
+      - name: Create or update release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          APP_VERSION: ${{ needs.build.outputs.version }}
+          PRERELEASE: ${{ needs.build.outputs.prerelease }}
+        run: |
+          set -euo pipefail
+          assets=(artifacts/SasamiLeaf_Standalone_Setup.exe artifacts/SHA256SUMS.txt)
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            flags=()
+            if [[ "$PRERELEASE" == 'true' ]]; then
+              flags+=(--prerelease)
+            fi
+            gh release create "$RELEASE_TAG" "${assets[@]}" \
+              --verify-tag --title "SasamiLeaf $APP_VERSION" --generate-notes "${flags[@]}"
+          fi

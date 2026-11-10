@@ -61,10 +61,18 @@ Requirements:
 - FFmpeg files from this repository
 - Inno Setup, only if you want to build the installer
 
+The current SasamiLeaf app version is **2.0.0**, corresponding to the published `SasamiLeaf2` release. The Flyleaf library versions are tracked separately. Tagged release builds use the tag's version for the application and installer.
+
 Build the app:
 
 ```powershell
 dotnet build SasamiLeaf\SasamiLeaf.csproj
+```
+
+Build the full solution before publishing so the plugins are available:
+
+```powershell
+dotnet build SasamiLeaf.sln -c Release -p:TargetFrameworks=net10.0-windows
 ```
 
 Publish a self-contained Win-x64 build:
@@ -80,6 +88,21 @@ Build_Installer.bat
 ```
 
 Then compile `SasamiLeaf_Installer.iss` with Inno Setup to generate `SasamiLeaf_Setup.exe`.
+
+## Automated Releases
+
+The [release workflow](.github/workflows/release.yml) builds a self-contained Windows x64 application with .NET 10, includes the plugins and bundled FFmpeg libraries, and compiles `SasamiLeaf_Standalone.iss` with Inno Setup. It publishes `SasamiLeaf_Standalone_Setup.exe` and `SHA256SUMS.txt` to GitHub Releases using the built-in `GITHUB_TOKEN`; no extra secret is needed.
+
+After the workflow changes are committed and pushed, create and push a version tag on the commit to release:
+
+```powershell
+git tag v2.0.1
+git push origin v2.0.1
+```
+
+Tags must use `vMAJOR.MINOR.PATCH`. A suffix such as `v2.1.0-beta.1` creates a prerelease. The workflow can also be run from **Actions > Build and release Windows installer > Run workflow**, supplying an existing version tag that contains the workflow and updated installer script. Rerunning a tag replaces its installer and checksum assets while preserving the existing release notes.
+
+The standalone installer retains its existing application ID for upgrades from SasamiLeaf 2.0. Its local default version is 2.0.0; CI overrides it from the tag. The older `SasamiLeaf_Installer.iss` is a separate legacy installer and is not used by this workflow.
 
 ## Project Layout
 
