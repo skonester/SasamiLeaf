@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing version tag to build (for example, v2.0.1)'
+        description: 'Version tag to publish (for example, v2.0.1; created after a successful build)'
         required: true
         type: string
 
@@ -30,12 +30,13 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
+      commit: ${{ steps.version.outputs.commit }}
 
     steps:
-      - name: Check out release tag
+      - name: Check out selected commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          ref: refs/tags/${{ inputs.tag || github.ref_name }}
+          ref: ${{ github.sha }}
           persist-credentials: false
 
       - name: Resolve release version
@@ -50,6 +51,7 @@ jobs:
           "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT
           "prerelease=$($version.Contains('-').ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          "commit=$(git rev-parse HEAD)" >> $env:GITHUB_OUTPUT
           "APP_VERSION=$version" >> $env:GITHUB_ENV
 
       - name: Set up .NET 10
@@ -65,7 +67,7 @@ jobs:
         run: >-
           dotnet publish SasamiLeaf/SasamiLeaf.csproj
           -c Release -r win-x64 --self-contained true
-          -p:PublishSingleFile=false -p:Version=$env:APP_VERSION
+          -p:PublishSingleFile=false -p:SasamiLeafVersion=$env:APP_VERSION
           -o publish_out --nologo
 
       - name: Verify installer payload
@@ -137,9 +139,17 @@ jobs:
           RELEASE_TAG: ${{ needs.build.outputs.tag }}
           APP_VERSION: ${{ needs.build.outputs.version }}
           PRERELEASE: ${{ needs.build.outputs.prerelease }}
+          RELEASE_COMMIT: ${{ needs.build.outputs.commit }}
         run: |
           set -euo pipefail
           assets=(artifacts/SasamiLeaf_Standalone_Setup.exe artifacts/SHA256SUMS.txt)
+          if gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" >/dev/null 2>&1; then
+            tag_commit=$(gh api "repos/$GH_REPO/commits/$RELEASE_TAG" --jq '.sha')
+            if [[ "$tag_commit" != "$RELEASE_COMMIT" ]]; then
+              echo "::error::Tag $RELEASE_TAG already points to another commit. Select that tag in Run workflow, or choose a new version tag."
+              exit 1
+            fi
+          fi
           if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
             gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
           else
@@ -148,5 +158,5 @@ jobs:
               flags+=(--prerelease)
             fi
             gh release create "$RELEASE_TAG" "${assets[@]}" \
-              --verify-tag --title "SasamiLeaf $APP_VERSION" --generate-notes "${flags[@]}"
+              --target "$RELEASE_COMMIT" --title "SasamiLeaf $APP_VERSION" --generate-notes "${flags[@]}"
           fi

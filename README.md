@@ -100,7 +100,11 @@ git tag v2.0.1
 git push origin v2.0.1
 ```
 
-Tags must use `vMAJOR.MINOR.PATCH`. A suffix such as `v2.1.0-beta.1` creates a prerelease. The workflow can also be run from **Actions > Build and release Windows installer > Run workflow**, supplying an existing version tag that contains the workflow and updated installer script. Rerunning a tag replaces its installer and checksum assets while preserving the existing release notes.
+Tags must use `vMAJOR.MINOR.PATCH`, with no dot after `v`. A suffix such as `v2.1.0-beta.1` creates a prerelease.
+
+To release directly from GitHub, open **Actions > Build and release Windows installer > Run workflow**, select `master`, and enter a new tag such as `v2.0.1`. The workflow builds the selected commit and creates the tag and release only after the installer builds successfully; the tag does not need to exist first.
+
+To rerun an existing version, select that version's tag in **Run workflow** and enter the same tag as the input. Rerunning the same commit replaces its installer and checksum assets while preserving the existing release notes. The workflow rejects an existing tag pointing to a different commit.
 
 The standalone installer retains its existing application ID for upgrades from SasamiLeaf 2.0. Its local default version is 2.0.0; CI overrides it from the tag. The older `SasamiLeaf_Installer.iss` is a separate legacy installer and is not used by this workflow.
 
