@@ -6,7 +6,7 @@
     <RootNamespace>FlyleafPlayer</RootNamespace>
     <UseWPF>true</UseWPF>
     <AssemblyName>SasamiLeaf</AssemblyName>
-    <Version>2.0.0</Version>
+    <Version>2.0.2</Version>
     <Version Condition="'$(SasamiLeafVersion)' != ''">$(SasamiLeafVersion)</Version>
     <ApplicationIcon>Flyleaf.ico</ApplicationIcon>
     <Platforms>AnyCPU;x86;x64</Platforms>
@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlyleafLib.Controls.WPF\FlyleafLib.Controls.WPF.csproj" />
+    <ProjectReference Include="..\Plugins\YoutubeDL\YoutubeDL.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,8 +38,22 @@
     <Resource Include="Images\menu.bmp" />
   </ItemGroup>
 
+  <Target Name="CopyPlaybackRuntime" AfterTargets="Build">
+    <ItemGroup>
+      <PluginRuntime Include="$(MSBuildProjectDirectory)\..\Plugins\bin\Plugins.NET10\**\*" />
+      <FFmpegRuntime Include="$(MSBuildProjectDirectory)\..\FFmpeg\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginRuntime)" DestinationFiles="@(PluginRuntime->'$(TargetDir)Plugins\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(FFmpegRuntime)" DestinationFolder="$(TargetDir)FFmpeg" SkipUnchangedFiles="true" />
+  </Target>
+
   <Target Name="PostPublish" AfterTargets="Publish">
-    <Exec Command="del /S /F /Q &quot;$(PublishDir)Plugins\&quot;&#xD;&#xA;rmdir /S /Q &quot;$(PublishDir)Plugins\&quot;&#xD;&#xA;del /S /F /Q &quot;$(PublishDir)FFmpeg\&quot;&#xD;&#xA;rmdir /S /Q &quot;$(PublishDir)FFmpeg\&quot;&#xD;&#xA;del &quot;$(PublishDir)*.pdb&quot;&#xD;&#xA;del &quot;$(PublishDir)*.xml&quot;&#xD;&#xA;&#xD;&#xA;if not exist &quot;$(PublishDir)Plugins&quot; mkdir &quot;$(PublishDir)Plugins&quot;&#xD;&#xA;if not exist &quot;$(PublishDir)FFmpeg&quot; mkdir &quot;$(PublishDir)FFmpeg&quot;&#xD;&#xA;&#xD;&#xA;xcopy &quot;$(MSBuildProjectDirectory)\..\FFmpeg\*&quot; &quot;$(PublishDir)FFmpeg\&quot; /E /Y&#xD;&#xA;xcopy &quot;$(MSBuildProjectDirectory)\..\Plugins\bin\Plugins.NET10\*&quot; &quot;$(PublishDir)Plugins\&quot; /E /Y" />
+    <ItemGroup>
+      <PublishedPluginRuntime Include="$(MSBuildProjectDirectory)\..\Plugins\bin\Plugins.NET10\**\*" />
+      <PublishedFFmpegRuntime Include="$(MSBuildProjectDirectory)\..\FFmpeg\*.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PublishedPluginRuntime)" DestinationFiles="@(PublishedPluginRuntime->'$(PublishDir)Plugins\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PublishedFFmpegRuntime)" DestinationFolder="$(PublishDir)FFmpeg" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

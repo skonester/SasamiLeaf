@@ -101,9 +101,8 @@
                     <Grid Grid.Row="0" x:Name="HeaderGrid" Margin="0">
                         <Grid.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                <GradientStop Color="#007C91" Offset="0"/>
-                                <GradientStop Color="#1268B3" Offset="0.5"/>
-                                <GradientStop Color="#E85C3D" Offset="1"/>
+                                <GradientStop Color="{Binding SelectedTheme.PrimaryColor}" Offset="0"/>
+                                <GradientStop Color="{Binding SelectedTheme.SecondaryColor}" Offset="1"/>
                             </LinearGradientBrush>
                         </Grid.Background>
                         <Grid.RowDefinitions>
@@ -287,7 +286,7 @@
                         <!--Classic Status Bar (Moved out of Video Grid to main Grid.Row 2)-->
                     </Grid>
 
-                    <Border Grid.Row="2" VerticalAlignment="Bottom" Height="22" Background="#D4D0C8" BorderThickness="0 1 0 0" BorderBrush="#808080">
+                    <Border Grid.Row="2" VerticalAlignment="Bottom" Height="22" Background="#D4D0C8" TextElement.Foreground="Black" BorderThickness="0 1 0 0" BorderBrush="#808080">
                         <Border.Style>
                             <Style TargetType="Border">
                                 <Style.Triggers>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -62,39 +63,37 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
         get => _SelectedTheme;
         set
         {
-            if (_SelectedTheme != null && _SelectedTheme.Name == value.Name)
+            if (value == null || ReferenceEquals(_SelectedTheme, value))
                 return;
 
             Set(ref _SelectedTheme, value, false);
-
-            Theme theme;
-            var tmp = Overlay.Resources.MergedDictionaries.FirstOrDefault(x => x is IMaterialDesignThemeDictionary);
-            if (tmp == null) // Set tmp theme to avoid missing theme keys
+            ApplyTheme(value);
+            if (UIConfig != null)
             {
-                var bndl = new BundledTheme
-                {
-                    PrimaryColor    = MaterialDesignColors.PrimaryColor.Pink,
-                    SecondaryColor  = MaterialDesignColors.SecondaryColor.Green,
-                    BaseTheme       = BaseTheme.Dark
-                };
-                theme = bndl.GetTheme();
-                Overlay.Resources.MergedDictionaries.Add(bndl);
+                UIConfig.SelectedTheme = value.Name;
+                foreach (var item in UIConfig.Themes)
+                    item.RefreshSelection();
             }
-            else
-                theme = Overlay.Resources.GetTheme();
-
-            theme.SetPrimaryColor(value.PrimaryColor);
-            theme.SetSecondaryColor(value.SecondaryColor);
-            theme.Background = value.BackgroundColor;
-            Overlay.Resources.SetTheme(theme);
-            settings?.Resources.SetTheme(theme);
-
-            UIConfig.SelectedTheme = value.Name;
-            if (Config != null && Config.Video != null)
-                Config.Video.BackColor = value.SurfaceColor;
         }
     }
     UITheme _SelectedTheme;
+
+    internal void ApplyTheme(UITheme value)
+    {
+        if (Overlay == null || !ReferenceEquals(SelectedTheme, value))
+            return;
+
+        var theme = Overlay.Resources.GetTheme();
+        double luminance = value.BackgroundColor.R * 0.2126 + value.BackgroundColor.G * 0.7152 + value.BackgroundColor.B * 0.0722;
+        theme.SetBaseTheme(luminance > 128 ? BaseTheme.Light : BaseTheme.Dark);
+        theme.SetPrimaryColor(value.PrimaryColor);
+        theme.SetSecondaryColor(value.SecondaryColor);
+        theme.Background = value.BackgroundColor;
+        Overlay.Resources.SetTheme(theme);
+        settings?.Resources.SetTheme(theme);
+        if (Config?.Video != null)
+            Config.Video.BackColor = value.SurfaceColor;
+    }
 
     public Color SelectedColor  {
         get => _SelectedColor;
@@ -157,6 +156,8 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
 
         if (SelectedTheme != null)
             Player.Config.Video.BackColor = SelectedTheme.SurfaceColor;
+        Raise(nameof(Config));
+        Raise(nameof(PluginsConfig));
 
         // Updates the key binding actions with the new instances in case of swap or initial load
         bool SubsYUp = false, SubsYDown = false, SubsFontIncrease = false, SubsFontDecrease = false;
@@ -324,9 +325,9 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
                 UIConfig.Save(this, UIConfigPath, ConfigPath, EnginePath);
         }
 
-        foreach (var uitheme in UIConfig.Themes)
-            if (uitheme.Name == "SasamiLeaf Pink")
-                SelectedTheme = uitheme;
+        SelectedTheme = UIConfig.Themes.FirstOrDefault(x => x.Name == UIConfig.SelectedTheme)
+                     ?? UIConfig.Themes.FirstOrDefault(x => x.Name == "SasamiLeaf Pink")
+                     ?? UIConfig.Themes.First();
 
         subsInitialMargin   = UIConfig.SubsMargin;
 
@@ -345,15 +346,13 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
     }
     private void InitializePopUps()
     {
-        if (popUpMenu != null)
-            popUpMenu.PlacementTarget = this;
+        if (popUpMenu == null)
+            return;
 
-        if (popUpMenu != null)
-        {
-            var videoItem = from object item in popUpMenu.Items where item is MenuItem && ((MenuItem)item).Header != null && ((MenuItem)item).Header.ToString() == "Video" select item;
-            var aspectRatioItem = from object item in ((MenuItem)videoItem.ToArray()[0]).Items where ((MenuItem)item).Header != null && ((MenuItem)item).Header.ToString() == "Aspect Ratio" select item;
-            popUpAspectRatio = (MenuItem)aspectRatioItem.ToArray()[0];
-        }
+        popUpMenu.PlacementTarget = Overlay;
+        popUpMenu.DataContext = this;
+        var videoItem = popUpMenu.Items.OfType<MenuItem>().FirstOrDefault(x => x.Header?.ToString() == "Video");
+        popUpAspectRatio = videoItem?.Items.OfType<MenuItem>().FirstOrDefault(x => x.Header?.ToString() == "Aspect Ratio");
 
         if (popUpAspectRatio != null)
         {
@@ -371,20 +370,30 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
             popUpAspectRatio.Items.Add(popUpCustomAspectRatio);
             popUpAspectRatio.Items.Add(popUpCustomAspectRatioSet);
 
-            popUpMenu.Closed += (o, e) => { if (Player != null) Player.Activity.IsEnabled = true; };
+        }
 
-            popUpMenu.Opened += (o, e) =>
+        bool activityEnabled = true;
+        popUpMenu.Closed += (o, e) => { if (Player != null) Player.Activity.IsEnabled = activityEnabled; };
+        popUpMenu.Opened += (o, e) =>
+        {
+            popUpMenu.DataContext = this;
+            if (Player != null)
             {
-                if (Player != null) Player.Activity.IsEnabled = false;
-                CanPaste = !string.IsNullOrEmpty(Clipboard.GetText());
+                activityEnabled = Player.Activity.IsEnabled;
+                Player.Activity.IsEnabled = false;
+            }
+            try { CanPaste = !string.IsNullOrWhiteSpace(Clipboard.GetText()); }
+            catch (ExternalException) { CanPaste = false; }
+            if (popUpAspectRatio != null && Config != null)
+            {
                 popUpCustomAspectRatio.Header = $"Custom ({Config.Video.AspectRatioCustom})";
                 FixMenuSingleCheck(popUpAspectRatio, Config.Video.AspectRatio.ToString());
                 if (Config.Video.AspectRatio == AspectRatio.Custom)
                     popUpCustomAspectRatio.IsChecked = true;
                 else if (Config.Video.AspectRatio == AspectRatio.Keep)
                     popUpKeepAspectRatio.IsChecked = true;
-            };
-        }
+            }
+        };
     }
 
     #region ICommands
@@ -398,7 +407,18 @@ public class FlyleafME : FlyleafHost, INotifyPropertyChanged
         ExitApplication     = new RelayCommand(ExitApplicationAction);
         SetSubsPositionY    = new RelayCommand(SetSubsPositionYAction);
         ResetSubsPositionY  = new RelayCommand(ResetSubsPositionYAction);
+        ChangeTheme         = new RelayCommand(obj =>
+        {
+            if (obj is not UITheme theme)
+                return;
+            SelectedTheme = theme;
+            try { UIConfig.Save(this, UIConfigPath, null, null); }
+            catch (System.IO.IOException e) { MessageBox.Show(e.Message, "Unable to save theme"); }
+            catch (UnauthorizedAccessException e) { MessageBox.Show(e.Message, "Unable to save theme"); }
+        });
     }
+
+    public ICommand ChangeTheme { get; set; }
 
     public ICommand OpenFileDialog      { get; set; }
     public void OpenFileDialogAction(object obj = null) => Player.OpenFromFileDialog();

@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Version tag to publish (for example, v2.0.1; created after a successful build)'
+        description: 'Version tag to publish (for example, v2.0.2; created after a successful build)'
         required: true
         type: string
 
@@ -45,7 +45,7 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
           if ($env:RELEASE_TAG -cnotmatch '^v(?<version>\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?)$') {
-            throw 'Release tags must use vMAJOR.MINOR.PATCH, optionally with a prerelease suffix (for example, v2.0.1-beta.1).'
+            throw 'Release tags must use vMAJOR.MINOR.PATCH, optionally with a prerelease suffix (for example, v2.0.2-beta.1).'
           }
           $version = $Matches.version
           "tag=$env:RELEASE_TAG" >> $env:GITHUB_OUTPUT
@@ -82,7 +82,9 @@ jobs:
             'Plugins/OpenSubtitlesOrg/OpenSubtitlesOrg.dll',
             'Plugins/SubtitlesConverter/SubtitlesConverter.dll',
             'Plugins/TorrentBitSwarm/TorrentBitSwarm.dll',
-            'Plugins/YoutubeDL/YoutubeDL.dll'
+            'Plugins/YoutubeDL/YoutubeDL.dll',
+            'Plugins/YoutubeDL/yt-dlp.exe',
+            'Plugins/YoutubeDL/deno.exe'
           )
           foreach ($file in $requiredFiles) {
             if (-not (Test-Path -LiteralPath (Join-Path 'publish_out' $file) -PathType Leaf)) {

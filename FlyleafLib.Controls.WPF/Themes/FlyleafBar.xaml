@@ -18,6 +18,11 @@
                                 <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/Slider.xaml"/>
                             </ResourceDictionary.MergedDictionaries>
 
+                            <!-- Playback chrome keeps the Windows 2000 palette in every theme. -->
+                            <Style x:Key="ClassicPlaybackSlider" TargetType="Slider" BasedOn="{StaticResource FlyleafSlider}">
+                                <Setter Property="Foreground" Value="#000080"/>
+                            </Style>
+
                             <Storyboard x:Key="fadeIn" Timeline.DesiredFrameRate="10">
                                 <DoubleAnimation BeginTime="0:0:0" Storyboard.TargetProperty="Opacity"  To="1" Duration="0:0:0.5" AutoReverse="False"/>
                             </Storyboard>
@@ -30,7 +35,7 @@
                     <Border DataContext="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type flwpf:FlyleafBar}}}" 
                             Background="#D4D0C8" VerticalAlignment="Bottom" Focusable="False" Margin="0"
                             SnapsToDevicePixels="True" UseLayoutRounding="True"
-                            TextElement.Foreground="#000000" TextElement.FontSize="11" TextElement.FontFamily="Tahoma">
+                            TextElement.Foreground="Black" TextElement.FontSize="11" TextElement.FontFamily="Tahoma">
                         <Border.Style>
                             <Style TargetType="{x:Type Border}">
                                 <Style.Triggers>
@@ -79,7 +84,7 @@
 
                                 <!--Current Time | Slider | Duration-->
                                 <TextBlock Grid.Column="0" HorizontalAlignment="Left"   VerticalAlignment="Center" Text="{Binding Player.CurTime, Converter={StaticResource TicksToTime}}" d:Text="00:00:00"/>
-                                <Slider    Grid.Column="1" IsSelectionRangeEnabled="True" SelectionStart="{Binding RelativeSource={RelativeSource Self}, Path=Value, Mode=OneWay}" Style="{DynamicResource FlyleafSlider}" Focusable="False" Margin="10,0,10,0" VerticalAlignment="Center" Value="{Binding Player.CurTime, Mode=TwoWay, Converter={StaticResource TicksToSeconds}}" Maximum="{Binding Player.Duration, Converter={StaticResource TicksToSeconds}}">
+                                <Slider    Grid.Column="1" IsSelectionRangeEnabled="True" SelectionStart="{Binding RelativeSource={RelativeSource Self}, Path=Value, Mode=OneWay}" Style="{StaticResource ClassicPlaybackSlider}" Focusable="False" Margin="10,0,10,0" VerticalAlignment="Center" Value="{Binding Player.CurTime, Mode=TwoWay, Converter={StaticResource TicksToSeconds}}" Maximum="{Binding Player.Duration, Converter={StaticResource TicksToSeconds}}">
                                     <Slider.SelectionEnd>
                                         <MultiBinding Converter="{StaticResource SumConverter}">
                                             <Binding Path="SelectionStart" RelativeSource="{RelativeSource Self}" Mode="OneWay"/>
@@ -98,6 +103,7 @@
                                             <Setter Property="Height" Value="24"/>
                                             <Setter Property="Focusable" Value="False"/>
                                             <Setter Property="Background" Value="#D4D0C8"/>
+                                            <Setter Property="Foreground" Value="Black"/>
                                             <Setter Property="BorderThickness" Value="2"/>
                                             <Setter Property="BorderBrush">
                                                 <Setter.Value>
@@ -287,13 +293,13 @@
                                 </Button>
 
                                 <!--Volume Slider-->
-                                <Slider Grid.Column="6" Style="{DynamicResource FlyleafSlider}" Width="80" VerticalAlignment="Center" Margin="5,0,5,0" Minimum="0" Maximum="{Binding Player.Config.Audio.VolumeMax, Mode=OneWay}" Value="{Binding Player.Audio.Volume}"/>
+                                <Slider Grid.Column="6" Style="{StaticResource ClassicPlaybackSlider}" Width="80" VerticalAlignment="Center" Margin="5,0,5,0" Minimum="0" Maximum="{Binding Player.Config.Audio.VolumeMax, Mode=OneWay}" Value="{Binding Player.Audio.Volume}"/>
 
                                 <!--Open Settings Button-->
                                 <Button Grid.Column="7" VerticalAlignment="Center" Style="{StaticResource IconButton}" Content="{materialDesign:PackIcon Kind=SettingsOutline, Size=16}" Command="{Binding OpenSettingsCmd}"/>
 
                                 <!--Toggle Fullscreen Button-->
-                                <ToggleButton Grid.Column="8" VerticalAlignment="Center" Width="24" Height="24" Background="Transparent" BorderThickness="0"
+                                <ToggleButton Grid.Column="8" VerticalAlignment="Center" Width="24" Height="24" Background="Transparent" Foreground="Black" BorderThickness="0"
                                               IsChecked="{Binding Player.Host.IsFullScreen}"
                                               Content="{materialDesign:PackIcon Kind=Fullscreen, Size=20}"
                                               materialDesign:ToggleButtonAssist.OnContent="{materialDesign:PackIcon Kind=FullscreenExit, Size=20}"/>

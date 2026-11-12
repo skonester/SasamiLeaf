@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -36,20 +36,11 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
     public new int      Priority        { get; set; } = 1999;
     static string       plugin_path     = "yt-dlp.exe";
     static JsonSerializerOptions
-                        jsonSettings    = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull };
-
-    FileSystemWatcher   watcher;
-    string              workingDir;
+                        jsonSettings    = new() { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, Converters = { new NullNumberConverter() } };
 
     Process             proc;
-    int                 procId = -1;
     object              procLocker = new();
-
-    bool                addingItem;
-    string              dynamicOptions = "";
-    bool                errGenericImpersonate;
     long                sessionId = -1; // same for playlists
-    int                 retries;
 
     public override Dictionary<string, string> GetDefaultOptions()
         => new()
@@ -65,20 +56,29 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
 
     private Format GetAudioOnly(YoutubeDLJson ytdl)
     {
-        foreach (var lang in Config.Audio.Languages)
+        string videoProtocol = Selected != null && ReferenceEquals(GetTag(Selected), ytdl)
+            ? Selected.ExternalVideoStream?.Protocol : null;
+        videoProtocol ??= GetBestMatch(ytdl)?.protocol;
+        return SelectAudioFormat(ytdl.formats, Config.Audio.Languages, videoProtocol);
+    }
+
+    internal static Format SelectAudioFormat(IEnumerable<Format> formats, IEnumerable<Language> languages, string videoProtocol)
+    {
+        // yt-dlp orders formats from worst to best. Keep that order for formats
+        // with unknown bitrates, including YouTube's low/high HLS audio variants.
+        var candidates = formats.Where(x => !string.IsNullOrEmpty(x.url) && HasAudio(x)).Reverse().ToList();
+        bool IsHls(string protocol) => protocol?.StartsWith("m3u8", StringComparison.OrdinalIgnoreCase) == true;
+        var ranked = candidates.OrderByDescending(x => !HasVideo(x))
+            .ThenByDescending(x => videoProtocol != null && IsHls(x.protocol) == IsHls(videoProtocol))
+            .ThenByDescending(x => x.language_preference).ToList();
+
+        foreach (var language in languages)
         {
-            // Prefer best with no video (dont waste bandwidth)
-            for (int i = ytdl.formats.Count - 1; i >= 0; i--)
-                if (lang == Language.Get(ytdl.formats[i].language) && HasAudio(ytdl.formats[i]) && !HasVideo(ytdl.formats[i]))
-                    return ytdl.formats[i];
-
-            // Prefer audio from worst video?
-            for (int i = 0; i < ytdl.formats.Count; i++)
-                if (lang == Language.Get(ytdl.formats[i].language) && HasAudio(ytdl.formats[i]))
-                    return ytdl.formats[i];
+            var match = ranked.FirstOrDefault(x => Language.Get(x.language) == language);
+            if (match != null)
+                return match;
         }
-
-        return null;
+        return ranked.FirstOrDefault();
     }
     private Format GetBestMatch(YoutubeDLJson ytdl)
     {
@@ -150,17 +150,23 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
     
     private static bool HasVideo(Format fmt)
     {
-        if (fmt.height > 0 || fmt.vbr > 0 || fmt.vcodec != "none")
+        if (fmt.height > 0 || fmt.vbr > 0 || (!string.IsNullOrEmpty(fmt.vcodec) && fmt.vcodec != "none"))
             return true;
 
         return false;
     }
-    private static bool HasAudio(Format fmt)
+    internal static bool HasAudio(Format fmt)
     {
-        if (fmt.abr > 0 || fmt.acodec != "none")
+        // An explicit "none" means silent video or a storyboard. Missing codec
+        // metadata is different: HLS audio can still be labelled "audio only".
+        if (string.Equals(fmt.acodec, "none", StringComparison.OrdinalIgnoreCase))
+            return false;
+        if (fmt.abr > 0 || (!string.IsNullOrEmpty(fmt.acodec) && fmt.acodec != "none"))
             return true;
 
-        return false;
+        return fmt.audio_channels > 0
+            || (!string.IsNullOrEmpty(fmt.audio_ext) && fmt.audio_ext != "none")
+            || string.Equals(fmt.resolution, "audio only", StringComparison.OrdinalIgnoreCase);
     }
 
     private void DisposeInternal()
@@ -170,55 +176,22 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
             if (Disposed)
                 return;
 
-            Log.Debug($"Disposing ({procId})");
-
-            if (procId != -1)
-            {
-                Process.Start(new ProcessStartInfo
-                {
-                    FileName        = "taskkill",
-                    Arguments       = $"/pid {procId} /f /t",
-                    CreateNoWindow  = true,
-                    UseShellExecute = false,
-                    WindowStyle     = ProcessWindowStyle.Hidden,
-                }).WaitForExit();
-            }
-
-            retries         =  0;
             sessionId       = -1;
-            dynamicOptions  = "";
-            errGenericImpersonate = false;
-
-            if (watcher != null)
+            if (proc != null)
             {
-                watcher.Dispose();
-                watcher = null;
-            }
-
-            if (workingDir != null)
-            {
-                Log.Debug($"Folder deleted ({workingDir})");
-                Directory.Delete(workingDir, true);
-                workingDir = null;
+                try { if (!proc.HasExited) proc.Kill(entireProcessTree: true); }
+                catch (InvalidOperationException) { }
+                catch (System.ComponentModel.Win32Exception e) { Log.Warn($"Unable to stop yt-dlp ({e.Message})"); }
+                proc.Dispose();
+                proc = null;
             }
 
             Disposed = true;
-            Log.Debug($"Disposed ({procId})");
         }
     }
 
-    private void NewPlaylistItem(string path)
+    private void NewPlaylistItem(string json)
     {
-        string json = null;
-
-        // File Watcher informs us on rename but the process still accessing the file
-        for (int i=0; i<3; i++)
-        {
-            Thread.Sleep(20);
-            try { json = File.ReadAllText(path); } catch { if (sessionId != Handler.OpenCounter) return; continue; }
-            break;
-        }
-
         YoutubeDLJson ytdl = null;
 
         try
@@ -287,12 +260,6 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
 
             if (!hasVideo && !hasAudio)
                 continue;
-
-            if (Language.Get(fmt.language) == Language.Unknown)
-                fmt.language = "en"; // Default to english ?
-
-            if (hasAudio && !Config.Audio.Languages.Contains(Language.Get(fmt.language)))
-                continue; // Just trying to reduce the number of streams?
 
             ExternalStream extStream;
 
@@ -420,11 +387,12 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
                 fmt.http_headers.Remove("Referer");
             }
 
-            extStream.HTTPHeaders = fmt.http_headers;
-
-            if (!string.IsNullOrEmpty(fmt.cookies))
-                extStream.HTTPHeaders.Add("Cookies", fmt.cookies);
-
+            extStream.HTTPHeaders = new(fmt.http_headers, StringComparer.OrdinalIgnoreCase);
+        }
+        if (!string.IsNullOrEmpty(fmt.cookies))
+        {
+            extStream.HTTPHeaders ??= new();
+            extStream.HTTPHeaders["Cookie"] = fmt.cookies;
         }
     }
 
@@ -443,7 +411,7 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
 
             string ext = GetUrlExtention(uri.AbsolutePath);
 
-            if (ext == "m3u8" || ext == "mp3" || ext == "m3u" || ext == "pls")
+            if (new[] { "m3u8", "m3u", "mpd", "pls", "mp4", "mkv", "webm", "avi", "mov", "ts", "mp3", "m4a", "aac", "flac", "wav", "ogg", "opus" }.Contains(ext, StringComparer.OrdinalIgnoreCase))
                 return false;
 
             // TBR: try to avoid processing radio stations
@@ -456,124 +424,100 @@ public class YoutubeDL : PluginBase, IOpen, ISuggestExternalAudio, ISuggestExter
     }
     public OpenResults Open()
     {
+        long currentSession = Handler.OpenCounter;
+        bool outputDone = false;
+        string extractionError = null;
         try
         {
+            Process process;
             lock (procLocker)
             {
+                string executable = Path.Combine(Engine.Plugins.Folder, Name, plugin_path);
+                if (!File.Exists(executable))
+                    return new("Web playback requires yt-dlp.exe. Rebuild with tools/Get-WebPlaybackTools.ps1 or reinstall SasamiLeaf.");
+
                 Disposed = false;
-                sessionId = Handler.OpenCounter;
+                sessionId = currentSession;
                 Playlist.InputType = InputType.Web;
-
-                workingDir = Path.GetTempPath() + Guid.NewGuid().ToString();
-
-                Log.Debug($"Folder created ({workingDir})");
-                Directory.CreateDirectory(workingDir);
-                proc = new Process
+                process = proc = new Process
                 {
-                    EnableRaisingEvents = true,
-
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName        = Path.Combine(Engine.Plugins.Folder, Name, plugin_path),
-                        // TBR: --extractor-args "youtube:skip=dash" | --youtube-skip-dash-manifest deprecated
-                        Arguments       = $"{dynamicOptions}{Options["ExtraArguments"]} --no-check-certificate --skip-download --youtube-skip-dash-manifest --write-info-json -P \"{workingDir}\" \"{Playlist.Url}\" -o \"%(title).220B\"", // 418 max filename length
-                        CreateNoWindow  = true,
+                        FileName = executable,
+                        // JSON on stdout avoids filename, file-watcher and process-exit races.
+                        Arguments = $"{Options["ExtraArguments"]} --ignore-config --skip-download --dump-json --no-playlist --socket-timeout 20 --retries 1 -- {QuoteArgument(Playlist.Url)}",
+                        CreateNoWindow = true,
                         UseShellExecute = false,
-                        WindowStyle     = ProcessWindowStyle.Hidden,
-                        RedirectStandardError   = true,
-                        RedirectStandardOutput  = Logger.CanDebug,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        RedirectStandardError = true,
+                        RedirectStandardOutput = true,
+                        StandardOutputEncoding = System.Text.Encoding.UTF8,
+                        StandardErrorEncoding = System.Text.Encoding.UTF8,
                     }
                 };
-
-                proc.Exited += (o, e) =>
+                process.OutputDataReceived += (o, e) =>
                 {
-                    lock (procLocker)
+                    if (e.Data == null)
                     {
-                        if (Logger.CanDebug)
-                            Log.Debug($"Process completed ({(procId == -1 ? "Killed" : $"{procId}")})");
-
-                        proc.Close();
-                        proc    = null;
-                        procId  = -1;
-                    }
-                };
-
-                proc.ErrorDataReceived += (o, e) =>
-                {
-                    if (sessionId != Handler.OpenCounter || e.Data == null)
+                        Volatile.Write(ref outputDone, true);
                         return;
-
-                    Log.Debug($"[stderr] {e.Data}");
-
-                    if (!errGenericImpersonate && e.Data.Contains("generic:impersonate"))
-                        errGenericImpersonate = true;
+                    }
+                    if (sessionId != currentSession || currentSession != Handler.OpenCounter)
+                        return;
+                    try { NewPlaylistItem(e.Data); }
+                    catch (Exception error) { Log.Warn($"Invalid yt-dlp result ({error.Message})"); }
                 };
-
-                if (Logger.CanDebug)
-                    proc.OutputDataReceived += (o, e) =>
-                    {
-                        if (sessionId == Handler.OpenCounter)
-                            Log.Debug($"[stdout] {e.Data}");
-                    };
-
-                watcher = new()
+                process.ErrorDataReceived += (o, e) =>
                 {
-                    Path = workingDir,
-                    EnableRaisingEvents = true,
+                    if (e.Data == null || sessionId != currentSession)
+                        return;
+                    Log.Debug($"[yt-dlp] {e.Data}");
+                    if (e.Data.StartsWith("ERROR:", StringComparison.OrdinalIgnoreCase))
+                        extractionError = e.Data;
                 };
-                watcher.Renamed += (o, e) =>
-                {
-                    try
-                    {
-                        if (sessionId != Handler.OpenCounter)
-                            return;
-
-                        addingItem = true;
-
-                        NewPlaylistItem(e.FullPath);
-
-                        if (Playlist.Items.Count == 1)
-                            Handler.OnPlaylistCompleted();
-
-                    } catch (Exception e2) { Log.Warn($"Renamed Event Error {e2.Message} | {sessionId != Handler.OpenCounter}");
-                    } finally { addingItem = false; }
-                };
-
-                proc.Start();
-                procId = proc.Id;
-                Log.Debug($"Process started ({procId})");
-
-                // Don't try to read them at once at the end as the buffers (hardcoded to 4096) can be full and proc will freeze
-                proc.BeginErrorReadLine();
-                if (Logger.CanDebug)
-                    proc.BeginOutputReadLine();
+                process.Start();
+                process.BeginErrorReadLine();
+                process.BeginOutputReadLine();
             }
 
-            while (Playlist.Items.Count < 1 && (proc != null || addingItem) && sessionId == Handler.OpenCounter)
+            while (Playlist.Items.Count == 0 && !Volatile.Read(ref outputDone) && sessionId == currentSession && currentSession == Handler.OpenCounter)
                 Thread.Sleep(35);
 
-            if (sessionId != Handler.OpenCounter)
-            {
-                Log.Info("Session cancelled");
-                DisposeInternal();
+            if (sessionId != currentSession || currentSession != Handler.OpenCounter)
                 return null;
-            }
 
-            if (Playlist.Items.Count == 0) // Allow fallback to default plugin in case of YT-DLP bug with windows filename (this affects proper direct URLs as well)
+            if (Playlist.Items.Count == 0)
             {
-                if (!errGenericImpersonate || retries > 0)
-                    return null;
-
-                Log.Warn("Re-trying with --extractor-args \"generic:impersonate\"");
-                DisposeInternal();
-                retries = 1;
-                dynamicOptions = "--extractor-args \"generic:impersonate\" ";
-                return Open();
+                // Drain stderr before reporting the extractor's actual failure.
+                process.WaitForExit();
+                if (extractionError?.Contains("Unsupported URL", StringComparison.OrdinalIgnoreCase) == true)
+                    return null; // Let FFmpeg try URLs yt-dlp does not handle.
+                return new(extractionError ?? "yt-dlp returned no playable streams. Update the web playback tools and try again.");
             }
+            Handler.OnPlaylistCompleted();
+            return new();
         }
-        catch (Exception e) { Log.Error($"Open ({e.Message})"); return new(e.Message); }
+        catch (Exception e)
+        {
+            if (sessionId != currentSession || currentSession != Handler.OpenCounter)
+                return null;
+            Log.Error($"Open ({e.Message})");
+            return new($"Web playback failed: {e.Message}");
+        }
+    }
 
-        return new();
+    // Quote one Windows argv value while retaining the user's ExtraArguments option.
+    internal static string QuoteArgument(string value)
+    {
+        var result = new System.Text.StringBuilder("\"");
+        int slashes = 0;
+        foreach (char ch in value)
+        {
+            if (ch == '\\') { slashes++; continue; }
+            result.Append('\\', ch == '\"' ? slashes * 2 + 1 : slashes).Append(ch);
+            slashes = 0;
+        }
+        return result.Append('\\', slashes * 2).Append('\"').ToString();
     }
 
     public OpenResults OpenItem()

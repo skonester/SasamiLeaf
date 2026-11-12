@@ -1,7 +1,22 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System;
+using System.Globalization;
+using System.Text.Json;
 
 namespace FlyleafLib.Plugins;
+
+// yt-dlp uses JSON null for unknown bitrates, frame rates and playlist counts.
+public class NullNumberConverter : JsonConverter<double>
+{
+    public override bool HandleNull => true;
+    public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => reader.TokenType == JsonTokenType.Null ? 0
+         : reader.TokenType == JsonTokenType.String ? double.Parse(reader.GetString(), CultureInfo.InvariantCulture)
+         : reader.GetDouble();
+    public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options)
+        => writer.WriteNumberValue(value);
+}
 
 public class YoutubeDLJson : Format
 {
@@ -99,6 +114,10 @@ public class YoutubeDLJson : Format
 
 public class Format
 {
+    public string   resolution  { get; set; }
+    public double   language_preference { get; set; }
+    public string   audio_ext   { get; set; }
+    public double   audio_channels { get; set; }
     //public double   asr         { get; set; }
     //public double   filesize    { get; set; }
     //public string   format_id   { get; set; }
@@ -118,7 +137,6 @@ public class Format
     //                downloader_options { get; set; }
     //public string   container   { get; set; }
     public string   protocol    { get; set; }
-    //public string   audio_ext   { get; set; }
     //public string   video_ext   { get; set; }
     public string   format      { get; set; }
     public Dictionary<string, string>

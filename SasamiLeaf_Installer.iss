@@ -3,7 +3,7 @@
 ; then right-click this file and select "Compile".
 
 #define MyAppName "SasamiLeaf"
-#define MyAppVersion "1.0"
+#define MyAppVersion "2.0.2"
 #define MyAppPublisher "Skonester"
 #define MyAppExeName "SasamiLeaf.exe"
 #define Config "Debug"

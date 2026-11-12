@@ -1,5 +1,6 @@
 ﻿using System.Drawing.Imaging;
 using System.Windows;
+using System.Runtime.InteropServices;
 
 using FlyleafLib.MediaFramework.MediaDecoder;
 using FlyleafLib.MediaFramework.MediaDemuxer;
@@ -72,7 +73,18 @@ unsafe partial class Player
             Clipboard.SetText(Playlist.Selected.DirectUrl);
     }
     public void OpenFromClipboard()
-        => OpenAsync(Clipboard.GetText());
+    {
+        try
+        {
+            string input = Clipboard.GetText()?.Trim().Trim('"').Trim();
+            if (!string.IsNullOrWhiteSpace(input))
+                OpenAsync(input);
+        }
+        catch (ExternalException e)
+        {
+            Log.Warn($"Unable to read the clipboard ({e.Message})");
+        }
+    }
     public void OpenFromFileDialog()
     {
         bool wasActivityEnabled = Activity.IsEnabled;

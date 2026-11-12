@@ -5,7 +5,7 @@
 
 #define AppName "SasamiLeaf"
 #ifndef AppVersion
-  #define AppVersion "2.0.0"
+  #define AppVersion "2.0.2"
 #endif
 #define AppPublisher "SasamiLeaf Project"
 #define AppURL "https://github.com/skonester/SasamiLeaf"

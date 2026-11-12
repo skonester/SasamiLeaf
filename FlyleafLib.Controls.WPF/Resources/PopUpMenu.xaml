@@ -8,11 +8,11 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/MaterialDesign.xaml"/>
         <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/Converters.xaml"/>
+        <ResourceDictionary Source="pack://application:,,,/FlyleafLib.Controls.WPF;component/Resources/ClassicMenu.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
-    <!-- Standard Flyleaf Menu Styles -->
-    <Style x:Key="FlyleafContextMenu" TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource MaterialDesignContextMenu}"/>
-    <Style x:Key="FlyleafMenuItem"    TargetType="{x:Type MenuItem}"    BasedOn="{StaticResource MaterialDesignMenuItem}"/>
+    <Style x:Key="FlyleafContextMenu" TargetType="{x:Type ContextMenu}" BasedOn="{StaticResource ClassicContextMenu}"/>
+    <Style x:Key="FlyleafMenuItem"    TargetType="{x:Type MenuItem}"    BasedOn="{StaticResource ClassicMenuItem}"/>
 
     <HierarchicalDataTemplate x:Key="DeviceMenuHierarchyTemplate" DataType="{x:Type devices:DeviceBase}" ItemsSource="{Binding Streams}">
         <TextBlock Text="{Binding FriendlyName}"/>
@@ -74,7 +74,7 @@
 
     <ContextMenu x:Key="PopUpMenu" Style="{StaticResource FlyleafContextMenu}">
         <MenuItem Header="Open File" Command="{Binding OpenFileDialog}" Icon="{materialDesign:PackIcon Kind=FileOutline}" Style="{StaticResource FlyleafMenuItem}"/>
-        <MenuItem Header="Paste Url" Command="{Binding Player.Commands.OpenFromClipboard}" Icon="{materialDesign:PackIcon Kind=ClipboardTextOutline}" IsEnabled="{Binding CanPaste}" Style="{StaticResource FlyleafMenuItem}"/>
+        <MenuItem Header="Paste URL" Command="{Binding Player.Commands.OpenFromClipboard}" Icon="{materialDesign:PackIcon Kind=ClipboardTextOutline}" IsEnabled="{Binding CanPaste}" Style="{StaticResource FlyleafMenuItem}"/>
         <Separator />
         <MenuItem Header="Audio" ItemsSource="{StaticResource MenuAudioStreams}" Icon="{materialDesign:PackIcon Kind=VolumeHigh}" Style="{StaticResource FlyleafMenuItem}"/>
         <MenuItem Header="Subtitles" ItemsSource="{StaticResource MenuSubtitlesStreams}" Icon="{materialDesign:PackIcon Kind=CcOutline}" Style="{StaticResource FlyleafMenuItem}"/>

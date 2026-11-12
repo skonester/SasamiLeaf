@@ -16,7 +16,7 @@
     <!--Overriding FlyleafME's Popup Menu (Using FlyleafME's Tag to pass our DataContext) -->
     <ContextMenu x:Key="PopUpMenu" Style="{StaticResource FlyleafContextMenu}">
         <MenuItem Header="Open File" Command="{Binding OpenFileDialog}" Icon="{materialDesign:PackIcon FolderOutline}" />
-        <MenuItem Header="Paste Url" Command="{Binding Player.Commands.OpenFromClipboard}"
+        <MenuItem Header="Paste URL" Command="{Binding Player.Commands.OpenFromClipboard}"
                   IsEnabled="{Binding CanPaste}" Icon="{materialDesign:PackIcon ContentPaste}" />
         <Separator />
 
@@ -62,7 +62,7 @@
             </MenuItem>
             <MenuItem Header="Devices" ItemsSource="{Binding CapDevices, Source={x:Static flyleafLib:Engine.Audio}}" ItemTemplate="{StaticResource DeviceMenuHierarchyTemplate}">
                 <MenuItem.Style>
-                    <Style TargetType="MenuItem" BasedOn="{StaticResource MaterialDesignMenuItem}">
+                    <Style TargetType="MenuItem" BasedOn="{StaticResource FlyleafMenuItem}">
                         <Setter Property="Visibility" Value="Visible"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding CapDevices, Source={x:Static flyleafLib:Engine.Audio}}" Value="{x:Null}">
@@ -139,7 +139,7 @@
             </MenuItem>
             <MenuItem Header="Devices" ItemsSource="{Binding CapDevices, Source={x:Static flyleafLib:Engine.Video}}" ItemTemplate="{StaticResource DeviceMenuHierarchyTemplate}">
                 <MenuItem.Style>
-                    <Style TargetType="MenuItem" BasedOn="{StaticResource MaterialDesignMenuItem}">
+                    <Style TargetType="MenuItem" BasedOn="{StaticResource FlyleafMenuItem}">
                         <Setter Property="Visibility" Value="Visible"/>
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding CapDevices, Source={x:Static flyleafLib:Engine.Video}}" Value="{x:Null}">
@@ -190,6 +190,19 @@
         <MenuItem Header="Always on Top"    IsCheckable="True" IsChecked="{Binding DetachedTopMost}"/>
         <MenuItem Header="Ratio Resize"     IsCheckable="True" IsChecked="{Binding KeepRatioOnResize}"/>
         <MenuItem Header="Show Debug"       IsCheckable="True" IsChecked="{Binding ShowDebug}"/>
+
+        <MenuItem Header="Themes" ItemsSource="{Binding UIConfig.Themes}">
+            <MenuItem.ItemContainerStyle>
+                <Style TargetType="MenuItem" BasedOn="{StaticResource FlyleafMenuItem}">
+                    <Setter Property="Header" Value="{Binding Name}"/>
+                    <Setter Property="Command" Value="{Binding DataContext.ChangeTheme, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                    <Setter Property="CommandParameter" Value="{Binding}"/>
+                    <Setter Property="IsCheckable" Value="True"/>
+                    <Setter Property="IsChecked" Value="{Binding IsSelected, Mode=OneWay}"/>
+                </Style>
+            </MenuItem.ItemContainerStyle>
+        </MenuItem>
+        <MenuItem Header="Settings..." Command="{Binding OpenSettings}"/>
 
         <Separator />
         <MenuItem Header="Exit" Icon="{materialDesign:PackIcon ExitToApp}" Command="{Binding ExitApplication}"/>

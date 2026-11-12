@@ -1,0 +1,15 @@
+# runtime artifacts
+app/sasami2k_log.txt
+app/*.bak
+app/*.tmp
+app/sasami2k.m3u
+*.tmp
+Thumbs.db
+desktop.ini
+
+# live settings - created from app/*.default.ini on first run, written by the player
+app/SASAMI2k.ini
+app/SASAMI2k_Translator.ini
+
+# build output (tools\build.ps1)
+build/

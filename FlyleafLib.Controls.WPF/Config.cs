@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Windows;
@@ -67,13 +68,16 @@ public class UIConfig : NotifyPropertyChanged
 
     public static void Load(FlyleafME flyleaf, string path)
     {
-        flyleaf.UIConfig = JsonSerializer.Deserialize<UIConfig>(File.ReadAllText(path));
-        flyleaf.ActivityTimeout = flyleaf.UIConfig.ActivityTimeout;
-        flyleaf.UIConfig.Loaded = true;
-        flyleaf.UIConfig.flyleaf = flyleaf;
-        foreach(var theme in flyleaf.UIConfig.Themes)
+        var config = JsonSerializer.Deserialize<UIConfig>(File.ReadAllText(path));
+        if (config?.Themes == null || config.Themes.Count == 0 || config.Themes.Any(x => x == null))
+            throw new InvalidDataException("The UI configuration does not contain any themes.");
+        config.Loaded = true;
+        config.flyleaf = flyleaf;
+        foreach(var theme in config.Themes)
             theme.flyleaf = flyleaf;
-
+        flyleaf.UIConfig = config;
+        if (config.ActivityTimeout > 0)
+            flyleaf.ActivityTimeout = config.ActivityTimeout;
     }
 
     public static void Save(FlyleafME flyleaf, string uiConfigPath, string configPath, string enginePath)
@@ -113,6 +117,9 @@ public class UITheme : NotifyPropertyChanged
     }
 
     public string Name { get; set; }
+    [JsonIgnore]
+    public bool IsSelected => ReferenceEquals(flyleaf?.SelectedTheme, this);
+    internal void RefreshSelection() => Raise(nameof(IsSelected));
     public Color PrimaryColor   {
         get => _PrimaryColor;
         set
@@ -120,10 +127,7 @@ public class UITheme : NotifyPropertyChanged
             if (!Set(ref _PrimaryColor, value)) return;
             if (flyleaf == null || flyleaf.SelectedTheme == null || flyleaf.SelectedTheme.Name != Name) return;
 
-            var theme = flyleaf.Overlay.Resources.GetTheme();
-            theme.SetPrimaryColor(value);
-            flyleaf.Overlay.Resources.SetTheme(theme);
-            flyleaf.settings.Resources.SetTheme(theme);
+            flyleaf.ApplyTheme(this);
         }
     }
     Color _PrimaryColor;
@@ -135,10 +139,7 @@ public class UITheme : NotifyPropertyChanged
             if (!Set(ref _SecondaryColor, value)) return;
             if (flyleaf == null || flyleaf.SelectedTheme == null || flyleaf.SelectedTheme.Name != Name) return;
 
-            var theme = flyleaf.Overlay.Resources.GetTheme();
-            theme.SetSecondaryColor(value);
-            flyleaf.Overlay.Resources.SetTheme(theme);
-            flyleaf.settings.Resources.SetTheme(theme);
+            flyleaf.ApplyTheme(this);
         }
     }
     Color _SecondaryColor;
@@ -150,10 +151,7 @@ public class UITheme : NotifyPropertyChanged
             if (!Set(ref _BackgroundColor, value)) return;
             if (flyleaf == null || flyleaf.SelectedTheme == null || flyleaf.SelectedTheme.Name != Name) return;
 
-            var theme = flyleaf.Overlay.Resources.GetTheme();
-            theme.Background = value;
-            flyleaf.Overlay.Resources.SetTheme(theme);
-            flyleaf.settings.Resources.SetTheme(theme);
+            flyleaf.ApplyTheme(this);
         }
     }
     Color _BackgroundColor;
@@ -165,7 +163,7 @@ public class UITheme : NotifyPropertyChanged
             if (!Set(ref _SurfaceColor, value)) return;
             if (flyleaf == null || flyleaf.SelectedTheme == null || flyleaf.SelectedTheme.Name != Name) return;
 
-            flyleaf.Config.Video.BackColor = value;
+            flyleaf.ApplyTheme(this);
         }
     }
     Color _SurfaceColor;

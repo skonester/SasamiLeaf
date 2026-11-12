@@ -351,3 +351,7 @@ FlyleafLib/FlyleafLib.xml
 
 # YT-DLP
 yt-dlp.exe
+/Plugins/YoutubeDL/Libs/deno.exe
+/Plugins/YoutubeDL/Libs/*-LICENSE*.md
+/Plugins/YoutubeDL/Libs/*-LICENSE*.txt
+/Plugins/YoutubeDL/Libs/web-playback-tools.json

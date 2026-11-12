@@ -61,7 +61,7 @@ Requirements:
 - FFmpeg files from this repository
 - Inno Setup, only if you want to build the installer
 
-The current SasamiLeaf app version is **2.0.0**, corresponding to the published `SasamiLeaf2` release. The Flyleaf library versions are tracked separately. Tagged release builds use the tag's version for the application and installer.
+The current SasamiLeaf app version is **2.0.2**. The Flyleaf library versions are tracked separately. Tagged release builds use the tag's version for the application and installer.
 
 Build the app:
 
@@ -96,17 +96,17 @@ The [release workflow](.github/workflows/release.yml) builds a self-contained Wi
 After the workflow changes are committed and pushed, create and push a version tag on the commit to release:
 
 ```powershell
-git tag v2.0.1
-git push origin v2.0.1
+git tag v2.0.2
+git push origin v2.0.2
 ```
 
 Tags must use `vMAJOR.MINOR.PATCH`, with no dot after `v`. A suffix such as `v2.1.0-beta.1` creates a prerelease.
 
-To release directly from GitHub, open **Actions > Build and release Windows installer > Run workflow**, select `master`, and enter a new tag such as `v2.0.1`. The workflow builds the selected commit and creates the tag and release only after the installer builds successfully; the tag does not need to exist first.
+To release directly from GitHub, open **Actions > Build and release Windows installer > Run workflow**, select `master`, and enter a new tag such as `v2.0.2`. The workflow builds the selected commit and creates the tag and release only after the installer builds successfully; the tag does not need to exist first.
 
 To rerun an existing version, select that version's tag in **Run workflow** and enter the same tag as the input. Rerunning the same commit replaces its installer and checksum assets while preserving the existing release notes. The workflow rejects an existing tag pointing to a different commit.
 
-The standalone installer retains its existing application ID for upgrades from SasamiLeaf 2.0. Its local default version is 2.0.0; CI overrides it from the tag. The older `SasamiLeaf_Installer.iss` is a separate legacy installer and is not used by this workflow.
+The standalone installer retains its existing application ID for upgrades from SasamiLeaf 2.0. Its local default version is 2.0.2; CI overrides it from the tag. The older `SasamiLeaf_Installer.iss` is a separate legacy installer and is not used by this workflow.
 
 ## Project Layout
 

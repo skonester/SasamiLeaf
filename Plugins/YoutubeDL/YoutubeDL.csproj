@@ -9,14 +9,26 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="YoutubeDL.Tests" />
 		<ProjectReference Include="..\..\FlyleafLib\FlyleafLib.csproj">
 			<Private>false</Private>
 			<ExcludeAssets>All</ExcludeAssets>
 		</ProjectReference>
 	</ItemGroup>
 
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="set plugindir=Plugins.NET10&#xD;&#xA;set pluginname=YoutubeDL&#xD;&#xA;if not exist &quot;$(SolutionDir)\Plugins\bin\%25plugindir%25\%25pluginname%25&quot; mkdir &quot;$(SolutionDir)\Plugins\bin\%25plugindir%25\%25pluginname%25&quot;&#xD;&#xA;move &quot;$(TargetDir)*.dll&quot; &quot;$(SolutionDir)\Plugins\bin\%25plugindir%25\%25pluginname%25\&quot;&#xD;&#xA;copy /Y &quot;$(ProjectDir)Libs\*&quot; &quot;$(SolutionDir)\Plugins\bin\%25plugindir%25\%25pluginname%25\&quot;&#xD;&#xA;del /Q &quot;$(SolutionDir)\Plugins\bin\%25plugindir%25\%25pluginname%25\yt-dlp.exe_here&quot;" />
+	<Target Name="EnsureWebPlaybackTools" BeforeTargets="Build" Condition="'$(TargetFramework)' != '' and '$(DesignTimeBuild)' != 'true'">
+		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\tools\Get-WebPlaybackTools.ps1&quot;" />
+	</Target>
+
+	<Target Name="CopyPluginRuntime" AfterTargets="Build" DependsOnTargets="EnsureWebPlaybackTools" Condition="'$(TargetFramework)' != ''">
+		<PropertyGroup>
+			<PluginRuntimeDir>$(MSBuildProjectDirectory)\..\bin\Plugins.NET10\YoutubeDL</PluginRuntimeDir>
+		</PropertyGroup>
+		<ItemGroup>
+			<WebPlaybackRuntime Include="$(MSBuildProjectDirectory)\Libs\*" Exclude="$(MSBuildProjectDirectory)\Libs\*.exe_here" />
+		</ItemGroup>
+		<MakeDir Directories="$(PluginRuntimeDir)" />
+		<Copy SourceFiles="$(TargetPath);@(WebPlaybackRuntime)" DestinationFolder="$(PluginRuntimeDir)" SkipUnchangedFiles="true" />
 	</Target>
 
 </Project>
