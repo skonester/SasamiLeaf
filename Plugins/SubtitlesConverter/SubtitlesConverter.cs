@@ -28,7 +28,7 @@ public class SubtitlesConverter : PluginBase
             {
                 int buflen = (int)Math.Min(stream.Length, 20 * 1024);
                 byte[] buf = new byte[buflen];
-                stream.Read(buf, 0, buflen);
+                stream.ReadExactly(buf);
                 detector.Feed(buf, 0, buf.Length);
                 detector.DataEnd();
 

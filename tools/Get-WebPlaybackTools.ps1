@@ -33,10 +33,21 @@ try {
     $denoHashes = Read-ReleaseText "$denoBase/$denoArchive.sha256sum"
     $denoHash = [regex]::Match($denoHashes, '\b([a-fA-F0-9]{64})\b').Groups[1].Value
     foreach ($item in @(@{ Name = 'yt-dlp.exe'; Hash = $ytHash }, @{ Name = $denoArchive; Hash = $denoHash })) {
-        $actual = (Get-FileHash -LiteralPath (Join-Path $staging $item.Name) -Algorithm SHA256).Hash
+        # MSBuild may launch Windows PowerShell with PowerShell 7's module path.
+        # Use .NET directly instead of depending on Get-FileHash autoloading.
+        $stream = [IO.File]::OpenRead((Join-Path $staging $item.Name))
+        $sha256 = [Security.Cryptography.SHA256]::Create()
+        try {
+            $actual = [BitConverter]::ToString($sha256.ComputeHash($stream)).Replace('-', '')
+        } finally {
+            $sha256.Dispose()
+            $stream.Dispose()
+        }
         if (-not $item.Hash -or $actual -ine $item.Hash) { throw "SHA-256 verification failed for $($item.Name)." }
     }
-    Expand-Archive -LiteralPath (Join-Path $staging $denoArchive) -DestinationPath (Join-Path $staging 'deno')
+    # Avoid the same module-path dependency for Microsoft.PowerShell.Archive.
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [IO.Compression.ZipFile]::ExtractToDirectory((Join-Path $staging $denoArchive), (Join-Path $staging 'deno'))
     # Retain upstream notices alongside the distributed executables.
     Invoke-WebRequest "https://raw.githubusercontent.com/yt-dlp/yt-dlp/$($ytRelease.tag_name)/THIRD_PARTY_LICENSES.txt" -OutFile (Join-Path $Destination 'yt-dlp-THIRD-PARTY-LICENSES.txt') -UseBasicParsing
     Invoke-WebRequest "https://raw.githubusercontent.com/denoland/deno/$($denoRelease.tag_name)/LICENSE.md" -OutFile (Join-Path $Destination 'deno-LICENSE.md') -UseBasicParsing

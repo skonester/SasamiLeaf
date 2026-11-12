@@ -29,15 +29,15 @@ class ChildRenderer : IVP
     public Viewport             Viewport        { get; private set; }
     public int                  ControlWidth    { get; private set; }
     public int                  ControlHeight   { get; private set; }
-    public int                  SideXPixels     => sideXPixels;
-    public int                  SideYPixels     => sideYPixels;
-    int                         sideXPixels, sideYPixels;
+    // Child renderers do not calculate letterbox margins yet.
+    public int                  SideXPixels     => 0;
+    public int                  SideYPixels     => 0;
 
     ID3D11DeviceContext     context;
     ID3D11Buffer            vsBuffer;
     VSBufferType            vsData    = new();
 
-    VPRequestType   vpRequestsIn, vpRequests; // In: From User | ProcessRequests Copy
+    VPRequestType   vpRequestsIn;
 
     public ChildRenderer(VPConfig config)
     {

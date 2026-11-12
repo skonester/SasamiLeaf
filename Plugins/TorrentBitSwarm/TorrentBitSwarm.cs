@@ -291,26 +291,26 @@ public class TorrentBitSwarm : PluginBase, IOpen
             if (!bitSwarm.isRunning) { Log.Info("Starting"); bitSwarm.Start(); }
 
             // Prepare for subs
-            bool threadDone = false;
-            Task.Run(() =>
+            var stream = TorrentStream;
+            long currentOpenItemId = openItemId;
+            bool IsCancelled() => Handler.Interrupt || currentOpenItemId != Handler.OpenItemCounter;
+            Task prepareStream = Task.Run(() =>
             {
-                if (Handler.Interrupt || openItemId != Handler.OpenItemCounter) { threadDone = true; return; }
-                byte[] tmp = new byte[65536];
-                TorrentStream.Position = 0;
-                TorrentStream.Read(tmp, 0, 65536);
-                if (Handler.Interrupt || openItemId != Handler.OpenItemCounter) { threadDone = true; return; }
-                TorrentStream.Position = TorrentStream.Length - 65536;
-                TorrentStream.Read(tmp, 0, 65536);
-                threadDone = true;
+                try { PrefetchMediaEnds(stream, IsCancelled); }
+                catch (Exception) when (IsCancelled()) { }
             });
 
-            while (!threadDone)
+            while (!prepareStream.IsCompleted)
             {
-                if (Handler.Interrupt || openItemId != Handler.OpenItemCounter) { TorrentStream?.Cancel(); return null; }
+                if (IsCancelled()) { stream.Cancel(); return null; }
                 Thread.Sleep(30);
             }
 
-            TorrentStream.Position = 0;
+            if (IsCancelled())
+                return null;
+            // Propagate a failed prefetch instead of waiting forever on a completion flag.
+            prepareStream.GetAwaiter().GetResult();
+            stream.Position = 0;
         }
         else if (File.Exists(Path.Combine(FolderComplete, FileName)))
         {
@@ -324,6 +324,24 @@ public class TorrentBitSwarm : PluginBase, IOpen
             return new("File not found");
 
         return new();
+    }
+
+    internal static void PrefetchMediaEnds(Stream stream, Func<bool> isCancelled)
+    {
+        if (isCancelled())
+            return;
+
+        long length = stream.Length;
+        int sampleSize = (int)Math.Min(length, 65536);
+        byte[] buffer = new byte[sampleSize];
+        stream.Position = 0;
+        stream.ReadExactly(buffer);
+
+        if (isCancelled() || length <= sampleSize)
+            return;
+
+        stream.Position = length - sampleSize;
+        stream.ReadExactly(buffer);
     }
 
     public class TorrentOptions : Options
