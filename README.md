@@ -1,6 +1,16 @@
 # SasamiLeaf
 
+> "Sasami2k is, or was, the best media player ever written. Is there anything actively developed that works like it?"
+> — [Ars Technica](https://arstechnica.com/civis/threads/is-there-a-spirtual-successor-to-sasami2k.483715/)
+
 **The logical evolution of the Sasami2k media player from Windows 2000 if it had been maintained over the years. Built on FFmpeg, DirectX, and Flyleaf as a modern Windows media player and .NET/WPF library.** A web player build for millenaials who enjoyed the old web.
+
+What Made Sasami2k Special?
+
+Released in the early 2000s, Sasami2k (developed by J.B. Park) gained a cult following for being ahead of its time. It combined a sleek, skinnable interface with deep, hardware-level video customization—allowing users to tweak colors, sharpness, aspect ratios, and playback speed on the fly without needing external codec packs. SasamiLeaf 
+attempts to bridge the gulf while taking liberties when needed.
+
+This update takes 
 
 ![SasamiLeaf media player screenshot](Images/Flyleafv3.6.png)
 
