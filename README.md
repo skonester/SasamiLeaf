@@ -1,5 +1,8 @@
 # SasamiLeaf
 
+> "Sasami2k is, or was, the best media player ever written. Is there anything actively developed that works like it?"
+> — [Ars Technica](https://arstechnica.com/civis/threads/is-there-a-spirtual-successor-to-sasami2k.483715/)
+
 **The spirit of Sasami2K, built for modern Windows media playback.** SasamiLeaf combines a classic player interface with Flyleaf's FFmpeg and DirectX engine: local files, web streams, hardware video decoding, HDR-to-SDR tone mapping, subtitles, and detailed playback controls in a .NET 10 / WPF desktop application.
 
 The repository includes the player, reusable Flyleaf-based .NET libraries, and media plugins. It also preserves the **original Sasami2K player under [`sasami2k-main/`](sasami2k-main/)**. The archive's launcher, documentation, and binaries are one level deeper, in [`sasami2k-main/sasami2k-main/`](sasami2k-main/sasami2k-main/).
